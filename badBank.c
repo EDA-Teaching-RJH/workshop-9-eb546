@@ -19,7 +19,7 @@ void process_transaction(struct BankAccount *acct) {
 }
 
 void update_credentials(struct BankAccount *acct) {
-    char new_name[64];
+    char new_name[200];
     printf("Enter new account name: ");
     fgets(new_name, sizeof(new_name), stdin);
     
