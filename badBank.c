@@ -10,17 +10,27 @@ struct BankAccount {
 void process_transaction(struct BankAccount *acct) {
     char memo[128]; 
     printf("Enter transaction memo: ");
-    gets(memo); 
+    fgets(memo, sizeof (memo), stdin); 
+
+    memo[strcspn(memo, "\n")] = '\0';
     
-    strcpy(acct->transaction_memo, memo); 
+    strncpy(acct->transaction_memo, memo, sizeof(acct->transaction_memo) - 1);
+    acct->transaction_memo[sizeof(acct->transaction_memo) - 1] = '\0';
 }
 
 void update_credentials(struct BankAccount *acct) {
     char new_name[64];
     printf("Enter new account name: ");
-    scanf("%s", new_name); 
+    fgets(new_name, sizeof(new_name), stdin);
     
-    strcpy(acct->account_holder, new_name);
+    new_name[strcspn(new_name, "\n")] = '\0';
+
+    if (strlen(new_name) >= sizeof(acct->account_holder)) {
+        printf("Error: Name too long. Truncating to fit.\n");
+    }
+    
+    strncpy(acct->account_holder, new_name, sizeof(acct->account_holder) - 1);
+    acct->account_holder[sizeof(acct->account_holder) - 1] = '\0';
 }
 
 int main() {
