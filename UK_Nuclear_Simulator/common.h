@@ -25,7 +25,6 @@
 #define LOG_FILE "nuclear_log.txt"
 #define ENCRYPT_LOGS 1
 
-// Message types
 typedef enum {
     MSG_REGISTER,
     MSG_INTEL,
@@ -36,7 +35,13 @@ typedef enum {
     MSG_TEST
 } MessageType;
 
-// Message structure
+typedef struct {
+    char name[50];
+    double latitude;
+    double longitude;
+    int priority;
+} Target;
+
 typedef struct {
     MessageType type;
     char sender[20];
@@ -46,7 +51,7 @@ typedef struct {
     int mac_len;
 } SecureMessage;
 
-// Global variables (extern declarations)
+// Global declarations
 extern unsigned char control_key[KEY_SIZE];
 extern pthread_mutex_t log_mutex;
 
@@ -61,4 +66,5 @@ void generate_random_key(unsigned char *key, int size);
 void log_message(const char *message);
 void process_and_decrypt_message(int client_socket, SecureMessage *msg, const unsigned char *key);
 
-#endif // COMMON_H
+#endif
+
