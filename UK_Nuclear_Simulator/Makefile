@@ -1,4 +1,5 @@
-CC = gcc CFLAGS = -Wall -Wextra
+CC = gcc 
+CFLAGS = -Wall -Wextra
 
 all: nuclearControl missileSilo submarine radar satellite
 
@@ -20,4 +21,3 @@ satellite: satellite.c
 clean:
 	rm -f nuclearControl missileSilo submarine radar satellite
 
-	
