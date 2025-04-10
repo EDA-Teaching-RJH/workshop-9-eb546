@@ -23,6 +23,7 @@
 #define IV_SIZE 16
 #define MAX_TARGETS 100
 #define LOG_FILE "nuclear_log.txt"
+#define ENCRYPT_LOGS 1
 
 // Message types
 typedef enum {
@@ -35,22 +36,7 @@ typedef enum {
     MSG_TEST
 } MessageType;
 
-// Intel categories
-typedef enum {
-    INTEL_RADAR,
-    INTEL_SATELLITE,
-    INTEL_SUBMARINE
-} IntelType;
-
-// Target information
-typedef struct {
-    char name[50];
-    double latitude;
-    double longitude;
-    int priority;
-} Target;
-
-// Message structure (moved to top)
+// Message structure
 typedef struct {
     MessageType type;
     char sender[20];
@@ -59,6 +45,10 @@ typedef struct {
     unsigned char mac[EVP_MAX_MD_SIZE];
     int mac_len;
 } SecureMessage;
+
+// Global variables (extern declarations)
+extern unsigned char control_key[KEY_SIZE];
+extern pthread_mutex_t log_mutex;
 
 // Function prototypes
 void handle_error(const char *msg, bool fatal);
@@ -69,8 +59,6 @@ int decrypt_message(SecureMessage *msg, const unsigned char *key);
 int verify_message(SecureMessage *msg, const unsigned char *key);
 void generate_random_key(unsigned char *key, int size);
 void log_message(const char *message);
-void print_hex(const char *label, const unsigned char *data, int len);
-void process_and_decrypt_message(int client_socket, SecureMessage *msg, unsigned char *key);
+void process_and_decrypt_message(int client_socket, SecureMessage *msg, const unsigned char *key);
 
 #endif // COMMON_H
-

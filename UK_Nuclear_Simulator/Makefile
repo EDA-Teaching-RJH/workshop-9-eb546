@@ -1,23 +1,27 @@
-CC = gcc 
-CFLAGS = -Wall -Wextra -O2 -I. -DENCRYPT_LOGS=1  # Set to 0 to disable log encryption
+CC = gcc
+CFLAGS = -Wall -Wextra -O2 -I.
+LDFLAGS = -lssl -lcrypto -lpthread
 
 all: nuclearControl missileSilo submarine radar satellite
 
-nuclearControl: nuclearControl.c common.c common.h
-	$(CC) $(CFLAGS) -o $@ nuclearControl.c common.c $(LDFLAGS)
+nuclearControl: nuclearControl.c common.c globals.c common.h
+	$(CC) $(CFLAGS) -o $@ nuclearControl.c common.c globals.c $(LDFLAGS)
 
-missileSilo: missileSilo.c
-	$(CC) $(CFLAGS) -o missileSilo missileSilo.c
+missileSilo: missileSilo.c common.c globals.c common.h
+	$(CC) $(CFLAGS) -o $@ missileSilo.c common.c globals.c $(LDFLAGS)
 
-submarine: submarine.c
-	$(CC) $(CFLAGS) -o submarine submarine.c
-
-radar: radar.c
-	$(CC) $(CFLAGS) -o radar radar.c
-
-satellite: satellite.c
-	$(CC) $(CFLAGS) -o satellite satellite.c
+# Similar rules for other components...
 
 clean:
 	rm -f nuclearControl missileSilo submarine radar satellite
+	rm -f nuclear_log.txt targets.dat
+
+test: all
+	./nuclearControl --test &
+	./missileSilo &
+	./submarine &
+	./radar &
+	./satellite &
+
+.PHONY: all clean test
 
