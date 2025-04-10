@@ -1,54 +1,68 @@
 #include "common.h"
-#include <stdarg.h>
 #include <sys/time.h>
 
-// Global variables specific to nuclearControl
 static Target targets[MAX_TARGETS];
 static int target_count = 0;
 static bool test_mode = false;
 static pthread_mutex_t target_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-// Function implementations...
+void process_message(int client_socket, SecureMessage *msg) {
+    char log_msg[BUFFER_SIZE];
+    snprintf(log_msg, sizeof(log_msg), "Processing message from %s", msg->sender);
+    log_message(log_msg);
+    // Add your message processing logic here
+}
 
-void *handle_client(void *arg) {
-    int client_socket = *((int *)arg);
+void process_and_decrypt_message(int client_socket, SecureMessage *msg, const unsigned char *key) {
+    if (!verify_message(msg, key)) {
+        log_message("Verification failed!");
+        return;
+    }
+    if (!decrypt_message(msg, key)) {
+        log_message("Decryption failed!");
+        return;
+    }
+    process_message(client_socket, msg);
+}
+
+void* handle_client(void *arg) {
+    int client_socket = *((int*)arg);
     free(arg);
-    
     SecureMessage msg;
-    int bytes_received;
     
-    while ((bytes_received = recv(client_socket, &msg, sizeof(msg), 0)) > 0) {
-        if (bytes_received != sizeof(msg)) {
-            log_message("Received incomplete message");
-            continue;
-        }
-        
+    while (recv(client_socket, &msg, sizeof(msg), 0) > 0) {
         process_and_decrypt_message(client_socket, &msg, control_key);
     }
-    
     close(client_socket);
     return NULL;
 }
 
-void process_and_decrypt_message(int client_socket, SecureMessage *msg, const unsigned char *key) {
-    char log_msg[BUFFER_SIZE * 2];
+int main(int argc, char *argv[]) {
+    // Initialize components
+    init_crypto();
+    generate_random_key(control_key, KEY_SIZE);
     
-    if (!verify_message(msg, key)) {
-        log_message("Message verification failed - possible security breach!");
-        return;
+    // Create server socket
+    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in address = {
+        .sin_family = AF_INET,
+        .sin_addr.s_addr = INADDR_ANY,
+        .sin_port = htons(CONTROL_PORT)
+    };
+    
+    bind(server_fd, (struct sockaddr*)&address, sizeof(address));
+    listen(server_fd, MAX_CLIENTS);
+    
+    log_message("Control Center started");
+    
+    while (1) {
+        int new_socket = accept(server_fd, NULL, NULL);
+        pthread_t thread_id;
+        int *client_socket = malloc(sizeof(int));
+        *client_socket = new_socket;
+        pthread_create(&thread_id, NULL, handle_client, client_socket);
     }
     
-    if (!decrypt_message(msg, key)) {
-        log_message("Failed to decrypt message");
-        return;
-    }
-    
-    snprintf(log_msg, sizeof(log_msg), "Decrypted message from %s: %s", 
-             msg->sender, msg->payload);
-    log_message(log_msg);
-    
-    process_message(client_socket, msg);
+    return 0;
 }
-
-// Rest of nuclearControl.c implementations...
 
