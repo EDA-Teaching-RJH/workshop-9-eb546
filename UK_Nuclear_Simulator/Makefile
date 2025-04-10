@@ -1,5 +1,5 @@
 CC = gcc 
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -O2 -I. -DENCRYPT_LOGS=1  # Set to 0 to disable log encryption
 
 all: nuclearControl missileSilo submarine radar satellite
 
