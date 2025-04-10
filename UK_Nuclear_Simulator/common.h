@@ -16,6 +16,8 @@
 #include <openssl/err.h>
 #include <pthread.h>
 
+// In common.h, add near other defines
+#define SERVER_IP "127.0.0.1"
 #define CONTROL_PORT 8080
 #define MAX_CLIENTS 10
 #define BUFFER_SIZE 1024
@@ -25,6 +27,7 @@
 #define LOG_FILE "nuclear_log.txt"
 #define ENCRYPT_LOGS 1
 #define LOG_VERBOSITY 1  // 0=errors only, 1=normal, 2=debug
+
 
 typedef enum {
     MSG_REGISTER,

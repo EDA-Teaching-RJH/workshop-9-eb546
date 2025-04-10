@@ -16,8 +16,38 @@ void log_message(const char *message) {
 }
 
 int encrypt_message(SecureMessage *msg, const unsigned char *key) {
-    // Implement your encryption
-    return 1; // Placeholder
+    EVP_CIPHER_CTX *ctx;
+    int len;
+    int ciphertext_len;
+    
+    if(!(ctx = EVP_CIPHER_CTX_new())) {
+        log_message("Failed to create encryption context");
+        return 0;
+    }
+
+    if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, msg->iv)) {
+        log_message("Encryption init failed");
+        EVP_CIPHER_CTX_free(ctx);
+        return 0;
+    }
+
+    if(1 != EVP_EncryptUpdate(ctx, (unsigned char*)msg->payload, &len, 
+                             (unsigned char*)msg->payload, strlen(msg->payload)+1)) {
+        log_message("Encryption update failed");
+        EVP_CIPHER_CTX_free(ctx);
+        return 0;
+    }
+    ciphertext_len = len;
+
+    if(1 != EVP_EncryptFinal_ex(ctx, (unsigned char*)msg->payload + len, &len)) {
+        log_message("Encryption final failed");
+        EVP_CIPHER_CTX_free(ctx);
+        return 0;
+    }
+    ciphertext_len += len;
+
+    EVP_CIPHER_CTX_free(ctx);
+    return 1;
 }
 
 int decrypt_message(SecureMessage *msg, const unsigned char *key) {

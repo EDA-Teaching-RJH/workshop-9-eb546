@@ -1,11 +1,6 @@
+ACTION REQUIRED: LLITE_DATA sent: 
 Control Center started
-Processing message from CH_MISSILE
-Processing message from CH_MISSILE
-Processing message from R_DATA
-Processing message from LLITE_DATA
-Control Center started
-Control Center started
-Processing message from CH_MISSILE
-Processing message from CH_MISSILE
-Processing message from R_DATA
-Processing message from LLITE_DATA
+ACTION REQUIRED: CH_MISSILE sent: 
+ACTION REQUIRED: CH_MISSILE sent: 
+ACTION REQUIRED: R_DATA sent: 
+ACTION REQUIRED: LLITE_DATA sent: 

@@ -9,12 +9,26 @@ static pthread_mutex_t target_mutex = PTHREAD_MUTEX_INITIALIZER;
 void process_message(int client_socket, SecureMessage *msg) {
     char log_msg[BUFFER_SIZE];
     
-    if (strstr(msg->payload, "STATUS")) {
-        snprintf(log_msg, sizeof(log_msg), "%s: %s", msg->sender, msg->payload);
-    } 
-    else {
-        snprintf(log_msg, sizeof(log_msg), "ACTION REQUIRED: %s sent: %s", 
-                 msg->sender, msg->payload);
+    switch(msg->type) {
+        case MSG_REGISTER:
+            snprintf(log_msg, sizeof(log_msg), "%s registered with control", msg->sender);
+            break;
+        case MSG_INTEL:
+            snprintf(log_msg, sizeof(log_msg), "INTEL RECEIVED from %s: %s", 
+                     msg->sender, msg->payload);
+            break;
+        case MSG_LAUNCH_ORDER:
+            snprintf(log_msg, sizeof(log_msg), "LAUNCH ORDER from %s: %s", 
+                     msg->sender, msg->payload);
+            // Add verification logic here
+            break;
+        case MSG_STATUS:
+            snprintf(log_msg, sizeof(log_msg), "STATUS UPDATE from %s: %s", 
+                     msg->sender, msg->payload);
+            break;
+        default:
+            snprintf(log_msg, sizeof(log_msg), "UNKNOWN MESSAGE TYPE from %s", 
+                     msg->sender);
     }
     
     log_message(log_msg);
@@ -71,5 +85,22 @@ int main(int argc, char *argv[]) {
     }
     
     return 0;
+}
+
+void distribute_keys(int client_socket) {
+    SecureMessage key_msg;
+    memset(&key_msg, 0, sizeof(key_msg));
+    
+    key_msg.type = MSG_REGISTER;
+    strcpy(key_msg.sender, "CONTROL");
+    memcpy(key_msg.payload, control_key, KEY_SIZE);
+    RAND_bytes(key_msg.iv, IV_SIZE);
+    
+    if(!encrypt_message(&key_msg, control_key)) {
+        log_message("Failed to encrypt key message");
+        return;
+    }
+    
+    send(client_socket, &key_msg, sizeof(key_msg), 0);
 }
 
