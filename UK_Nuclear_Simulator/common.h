@@ -24,6 +24,7 @@
 #define MAX_TARGETS 100
 #define LOG_FILE "nuclear_log.txt"
 #define ENCRYPT_LOGS 1
+#define LOG_VERBOSITY 1  // 0=errors only, 1=normal, 2=debug
 
 typedef enum {
     MSG_REGISTER,

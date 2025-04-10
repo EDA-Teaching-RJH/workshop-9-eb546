@@ -8,9 +8,16 @@ static pthread_mutex_t target_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void process_message(int client_socket, SecureMessage *msg) {
     char log_msg[BUFFER_SIZE];
-    snprintf(log_msg, sizeof(log_msg), "Processing message from %s", msg->sender);
+    
+    if (strstr(msg->payload, "STATUS")) {
+        snprintf(log_msg, sizeof(log_msg), "%s: %s", msg->sender, msg->payload);
+    } 
+    else {
+        snprintf(log_msg, sizeof(log_msg), "ACTION REQUIRED: %s sent: %s", 
+                 msg->sender, msg->payload);
+    }
+    
     log_message(log_msg);
-    // Add your message processing logic here
 }
 
 void process_and_decrypt_message(int client_socket, SecureMessage *msg, const unsigned char *key) {

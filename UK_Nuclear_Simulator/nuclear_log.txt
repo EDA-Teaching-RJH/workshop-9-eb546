@@ -1,0 +1,11 @@
+Control Center started
+Processing message from CH_MISSILE
+Processing message from CH_MISSILE
+Processing message from R_DATA
+Processing message from LLITE_DATA
+Control Center started
+Control Center started
+Processing message from CH_MISSILE
+Processing message from CH_MISSILE
+Processing message from R_DATA
+Processing message from LLITE_DATA
