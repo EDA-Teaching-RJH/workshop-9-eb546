@@ -3,8 +3,8 @@ CFLAGS = -Wall -Wextra -O2 -I. -DENCRYPT_LOGS=1  # Set to 0 to disable log encry
 
 all: nuclearControl missileSilo submarine radar satellite
 
-nuclearControl: nuclearControl.c
-	$(CC) $(CFLAGS) -o nuclearControl nuclearControl.c
+nuclearControl: nuclearControl.c common.c common.h
+	$(CC) $(CFLAGS) -o $@ nuclearControl.c common.c $(LDFLAGS)
 
 missileSilo: missileSilo.c
 	$(CC) $(CFLAGS) -o missileSilo missileSilo.c

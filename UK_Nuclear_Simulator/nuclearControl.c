@@ -7,28 +7,25 @@
 #define PORT 8080
 #define BUFFER_SIZE 1024
 
-void handle_client(int client_socket) {
-    char buffer[BUFFER_SIZE];
-    int read_size;
-
-    // Receive data from client
-    while ((read_size = recv(client_socket, buffer, BUFFER_SIZE, 0)) > 0) {
-        buffer[read_size] = '\0'; // Null-terminate the received string
-        printf("Received: %s\n", buffer);
-
-        // Process command and respond
-        // Here you would implement logic to verify and respond to commands
-        // For simplicity, we just echo back
-        send(client_socket, buffer, strlen(buffer), 0);
+// In nuclearControl.c
+void *handle_client(void *arg) {
+    int client_socket = *((int *)arg);
+    free(arg);
+    
+    SecureMessage msg;
+    int bytes_received;
+    
+    while ((bytes_received = recv(client_socket, &msg, sizeof(msg), 0)) > 0) {
+        if (bytes_received != sizeof(msg)) {
+            log_message("Received incomplete message");
+            continue;
+        }
+        
+        process_and_decrypt_message(client_socket, &msg, control_key);
     }
-
-    if (read_size == 0) {
-        printf("Client disconnected\n");
-    } else {
-        perror("recv failed");
-    }
-
+    
     close(client_socket);
+    return NULL;
 }
 
 int main() {
@@ -74,6 +71,7 @@ int main() {
     return 0;
 }
 
+// Updated function in nuclearControl.c
 void process_and_decrypt_message(int client_socket, SecureMessage *msg, unsigned char *key) {
     char log_msg[BUFFER_SIZE * 2];
     
@@ -91,6 +89,5 @@ void process_and_decrypt_message(int client_socket, SecureMessage *msg, unsigned
              msg->sender, msg->payload);
     log_message(log_msg);
     
-    // Rest of your processing logic...
     process_message(client_socket, msg);
 }

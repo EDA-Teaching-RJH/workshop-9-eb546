@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/select.h>  // Added for fd_set and timeval
+#include <sys/select.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
@@ -50,7 +50,7 @@ typedef struct {
     int priority;
 } Target;
 
-// Message structure
+// Message structure (moved to top)
 typedef struct {
     MessageType type;
     char sender[20];
@@ -70,6 +70,7 @@ int verify_message(SecureMessage *msg, const unsigned char *key);
 void generate_random_key(unsigned char *key, int size);
 void log_message(const char *message);
 void print_hex(const char *label, const unsigned char *data, int len);
+void process_and_decrypt_message(int client_socket, SecureMessage *msg, unsigned char *key);
 
 #endif // COMMON_H
 
