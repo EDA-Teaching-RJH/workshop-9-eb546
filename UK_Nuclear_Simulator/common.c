@@ -176,35 +176,31 @@ void some_function() {
 void decrypt_log_file(const char *filename, const char *key) {
     FILE *file = fopen(filename, "r");
     if (!file) {
-        log_message("Failed to open log file for decryption", false);
+        log_message("Failed to open log file", false);
         return;
     }
-    
-    printf("\nDecrypted Log Contents:\n");
-    printf("----------------------\n");
-    
+
     char line[BUFFER_SIZE * 2];
     while (fgets(line, sizeof(line), file)) {
         char *msg_start = strchr(line, ']');
         if (msg_start && *(msg_start+1)) {
-            *msg_start = '\0'; // Separate timestamp
+            *msg_start = '\0';  // Separate timestamp
             char message[BUFFER_SIZE];
             strncpy(message, msg_start+2, sizeof(message)-1);
-        
-            // Remove newline
+            
             char *nl = strchr(message, '\n');
             if (nl) *nl = '\0';
-        
-            // Apply decryption (reverse order of encryption)
+            
             madryga_encrypt(message, strlen(message), key, false);
             caesar_cipher(message, 5, false);
-        
+            
             printf("%s] %s\n", line, message);
         }
     }
     fclose(file);
-    printf("----------------------\n");
 }
+
+// Remove the problematic some_function() entirely
 
 void handle_message(SecureMessage *msg) {
     if (!msg) return;

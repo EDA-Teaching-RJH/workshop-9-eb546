@@ -40,13 +40,10 @@ void process_message(int client_socket, SecureMessage *msg) {
     char log_msg[BUFFER_SIZE * 2];
     
     switch(msg->type) {
-
-        case MSG_REGISTER:
+        case MSG_REGISTER: {
             snprintf(log_msg, sizeof(log_msg), "%s registered with control", msg->sender);
             log_message(log_msg, true);
-            break;
             
-            // Send acknowledgement
             SecureMessage response;
             response.type = MSG_STATUS;
             strcpy(response.sender, "CONTROL");
@@ -54,42 +51,37 @@ void process_message(int client_socket, SecureMessage *msg) {
             encrypt_message(&response, control_key);
             send(client_socket, &response, sizeof(response), 0);
             break;
+        }
             
-        case MSG_INTEL:
-            snprintf(log_msg, sizeof(log_msg), "Intel received from %s: %s", msg->sender, msg->payload);
+        case MSG_INTEL: {
+            snprintf(log_msg, sizeof(log_msg), "Intel from %s: %s", msg->sender, msg->payload);
             log_message(log_msg, true);
-            break;
             
-            // In test mode, randomly decide if this is a threat
-            if (test_mode && rand() % 100 < 30) { // 30% chance of threat in test mode
+            if (test_mode && rand() % 100 < 30) {
                 log_message("TEST MODE: Simulated threat detected!", true);
                 
-                // Select a random target
                 pthread_mutex_lock(&target_mutex);
                 int target_idx = rand() % target_count;
                 Target target = targets[target_idx];
                 pthread_mutex_unlock(&target_mutex);
                 
-                // Decide launch platform based on target location
                 const char *platform = (target.longitude < -30) ? "SUBMARINE" : "MISSILE_SILO";
-                
                 snprintf(log_msg, sizeof(log_msg), 
                         "TEST MODE: Launching nuclear strike on %s via %s", 
                         target.name, platform);
                 log_message(log_msg, true);
                 
-                // Prepare launch order
                 SecureMessage launch_order;
                 launch_order.type = MSG_LAUNCH_ORDER;
                 strcpy(launch_order.sender, "CONTROL");
                 snprintf(launch_order.payload, sizeof(launch_order.payload),
                         "TARGET:%s,LAT:%f,LON:%f", target.name, target.latitude, target.longitude);
-                
                 encrypt_message(&launch_order, control_key);
                 send(client_socket, &launch_order, sizeof(launch_order), 0);
             }
             break;
-
+        }
+            
         case MSG_DECRYPT_LOGS:
             decrypt_log_file(LOG_FILE, LOG_ENCRYPTION_KEY);
             break;
@@ -100,7 +92,7 @@ void process_message(int client_socket, SecureMessage *msg) {
             break;
             
         default:
-            snprintf(log_msg, sizeof(log_msg), "Unknown message type from %d", msg->sender);
+            snprintf(log_msg, sizeof(log_msg), "Unknown message type: %d", (int)msg->type);
             log_message(log_msg, true);
             break;
     }
