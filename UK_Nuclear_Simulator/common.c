@@ -23,8 +23,6 @@ void log_message(const char *message, bool encrypt_logs) {
             caesar_cipher(encrypted, 5, true);
             madryga_encrypt(encrypted, strlen(encrypted), LOG_ENCRYPTION_KEY, true);
             fprintf(log_file, "[%s] %s\n", time_str, encrypted);
-        } else {
-            fprintf(log_file, "[%s] %s\n", time_str, message);
         }
         fclose(log_file);
     }
