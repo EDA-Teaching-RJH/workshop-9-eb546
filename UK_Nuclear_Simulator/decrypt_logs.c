@@ -10,12 +10,13 @@
 
 void caesar_cipher(char *text, int shift, bool encrypt) {
     if (!text) return;
-    shift = shift % 26;
+    shift = shift % 95;
     if (!encrypt) shift = -shift;
     for (int i = 0; text[i] != '\0'; i++) {
-        if (isalpha(text[i])) {
-            char base = isupper(text[i]) ? 'A' : 'a';
-            text[i] = ((text[i] - base + shift + 26) % 26) + base;
+        if (text[i] >= 32 && text[i] <= 126) {
+            int val = text[i] - 32;
+            val = (val + shift + 95) % 95;
+            text[i] = (char)(val + 32);
         }
     }
 }
@@ -24,23 +25,12 @@ void madryga_encrypt(char *data, size_t len, const char *key, bool encrypt) {
     if (!data || !key || len == 0) return;
     size_t key_len = strlen(key);
     if (key_len == 0) return;
-
-    const int min_ascii = 32;  // Space
-    const int max_ascii = 126; // Tilde
-    const int range = max_ascii - min_ascii + 1; // 95
-
     for (size_t i = 0; i < len; i++) {
-        // Map character to 0-94 range
-        int val = data[i] - min_ascii;
-        if (val < 0 || val >= range) continue; // Skip if not in printable range
-
-        // Compute shift based on key
-        int shift = key[i % key_len] % 16;
+        unsigned char val = (unsigned char)data[i];
+        int shift = (key[i % key_len] % 16) + 1;
         if (!encrypt) shift = -shift;
-
-        // Apply shift and wrap around within printable range
-        val = (val + shift + range) % range;
-        data[i] = (char)(val + min_ascii);
+        val = (val + shift + 256) % 256;
+        data[i] = (char)val;
     }
 }
 
