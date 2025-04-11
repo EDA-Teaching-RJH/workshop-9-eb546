@@ -173,10 +173,10 @@ void some_function() {
 }
 
 // Function to decrypt log file
-void decrypt_log_file(const char *filename, const char *encryption_key) {
+void decrypt_log_file(const char *filename, const char *key) {
     FILE *file = fopen(filename, "r");
     if (!file) {
-        printf("Failed to open log file\n");
+        log_message("Failed to open log file for decryption", false);
         return;
     }
     
@@ -185,12 +185,11 @@ void decrypt_log_file(const char *filename, const char *encryption_key) {
     
     char line[BUFFER_SIZE * 2];
     while (fgets(line, sizeof(line), file)) {
-        // Find where the message starts after timestamp
-        char *message_start = strchr(line, ']');
-        if (!message_start || *(message_start + 1) == '\0') {
-            printf("%s", line);
-            continue;
-        }
+        char *msg_start = strchr(line, ']');
+        if (msg_start && *(msg_start+1)) {
+            *msg_start = '\0'; // Separate timestamp
+            char message[BUFFER_SIZE];
+            strncpy(message, msg_start+2, sizeof(message)-1);
         
         // Extract the message part
         char message[BUFFER_SIZE];
@@ -198,8 +197,8 @@ void decrypt_log_file(const char *filename, const char *encryption_key) {
         message[sizeof(message) - 1] = '\0';
         
         // Remove newline if present
-        char *newline = strchr(message, '\n');
-        if (newline) *newline = '\0';
+        char *nl = strchr(message, '\n');
+            if (nl) *nl = '\0';
         
         // Apply decryption (reverse order of encryption)
         madryga_encrypt(message, strlen(message), encryption_key, false);
@@ -209,7 +208,6 @@ void decrypt_log_file(const char *filename, const char *encryption_key) {
         *message_start = '\0';
         printf("%s] %s\n", line, message);
     }
-    
     fclose(file);
     printf("----------------------\n");
 }

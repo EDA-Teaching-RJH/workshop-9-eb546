@@ -47,6 +47,7 @@ void process_message(int client_socket, SecureMessage *msg) {
         case MSG_REGISTER:
             snprintf(log_msg, sizeof(log_msg), "%s registered with control", msg->sender);
             log_message(log_msg, true);
+            break;
             
             // Send acknowledgement
             SecureMessage response;
