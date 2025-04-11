@@ -1,63 +1,105 @@
 #include "common.h"
-#include <sys/time.h>
 
-// Add this near the top of missileSilo.c (after the includes)
-#define SERVER_IP "127.0.0.1"  // Localhost IP
+static unsigned char silo_key[KEY_SIZE];
+static bool launch_capability = true;
 
-unsigned char silo_key[KEY_SIZE];
-
-void launch_missile(const char *target) {
-    printf("Launching missile at target: %s\n", target);
-    // Actual launch implementation would go here
+// Function to simulate missile launch
+void launch_missile(const char *target_info) {
+    char log_msg[BUFFER_SIZE];
+    snprintf(log_msg, sizeof(log_msg), "MISSILE SILO: Launching missile at %s", target_info);
+    log_message(log_msg);
+    
+    // Simulate launch sequence
+    for (int i = 5; i > 0; i--) {
+        snprintf(log_msg, sizeof(log_msg), "Launch in %d...", i);
+        log_message(log_msg);
+        sleep(1);
+    }
+    
+    log_message("Missile launched!");
 }
 
 int main() {
-    int sock;
-    struct sockaddr_in server_addr;
-    SecureMessage msg;
-    
+    // Initialize crypto
     init_crypto();
     
-    // Create socket and connect
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("Socket creation error");
-        return -1;
-    }
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(CONTROL_PORT);
-    inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr);
-
-    if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("Connection failed");
-        return -1;
-    }
-
-    // Receive encryption key from control
-    if(recv(sock, &msg, sizeof(msg), 0) <= 0) {
-        perror("Key receive failed");
-        return -1;
+    // In a real system, this would be pre-shared or exchanged via secure channel
+    memcpy(silo_key, "SECRET_KEY_MISSILE_SILO_1234567890", KEY_SIZE);
+    
+    // Create socket
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        handle_error("Socket creation failed", true);
     }
     
-    if(!verify_message(&msg, control_key) || !decrypt_message(&msg, control_key)) {
-        printf("Key verification failed!\n");
-        return -1;
+    // Configure server address
+    struct sockaddr_in serv_addr;
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(CONTROL_PORT);
+    
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+        handle_error("Invalid address", true);
     }
     
-    memcpy(silo_key, msg.payload, KEY_SIZE);
+    // Connect to control
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        handle_error("Connection failed", true);
+    }
+    
+    log_message("Missile Silo connected to Control");
+    
+    // Register with control
+    SecureMessage msg;
+    msg.type = MSG_REGISTER;
+    strcpy(msg.sender, "MISSILE_SILO");
+    strcpy(msg.payload, "Ready for commands");
+    
+    encrypt_message(&msg, silo_key);
+    send(sock, &msg, sizeof(msg), 0);
     
     // Main loop
-    while(1) {
-        if(recv(sock, &msg, sizeof(msg), 0) > 0) {
-            if(verify_message(&msg, silo_key) && decrypt_message(&msg, silo_key)) {
-                if(msg.type == MSG_LAUNCH_ORDER) {
-                    launch_missile(msg.payload);
-                }
+    while (1) {
+        int bytes_received = recv(sock, &msg, sizeof(msg), 0);
+        if (bytes_received <= 0) {
+            handle_error("Connection lost", false);
+            break;
+        }
+        
+        if (verify_message(&msg, silo_key)) {
+            decrypt_message(&msg, silo_key);
+            
+            switch(msg.type) {
+                case MSG_LAUNCH_ORDER:
+                    if (launch_capability) {
+                        launch_missile(msg.payload);
+                        
+                        // Send confirmation
+                        SecureMessage response;
+                        response.type = MSG_LAUNCH_CONFIRM;
+                        strcpy(response.sender, "MISSILE_SILO");
+                        strcpy(response.payload, "Launch sequence completed");
+                        encrypt_message(&response, silo_key);
+                        send(sock, &response, sizeof(response), 0);
+                    } else {
+                        log_message("Launch order received but capability offline");
+                    }
+                    break;
+                    
+                case MSG_STATUS:
+                    log_message(msg.payload);
+                    break;
+                    
+                default:
+                    log_message("Received unknown message type");
+                    break;
             }
+        } else {
+            log_message("Message verification failed - possible security breach!");
         }
     }
-
+    
     close(sock);
+    cleanup_crypto();
     return 0;
 }
 

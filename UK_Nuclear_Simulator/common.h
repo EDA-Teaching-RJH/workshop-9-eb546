@@ -10,14 +10,12 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/select.h>
+#include <sys/select.h>  // Added for fd_set and timeval
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
 #include <pthread.h>
 
-// In common.h, add near other defines
-#define SERVER_IP "127.0.0.1"
 #define CONTROL_PORT 8080
 #define MAX_CLIENTS 10
 #define BUFFER_SIZE 1024
@@ -25,10 +23,9 @@
 #define IV_SIZE 16
 #define MAX_TARGETS 100
 #define LOG_FILE "nuclear_log.txt"
-#define ENCRYPT_LOGS 1
-#define LOG_VERBOSITY 1  // 0=errors only, 1=normal, 2=debug
+#define LOG_ENCRYPTION_KEY "NuclearLogEncryptKey123"
 
-
+// Message types
 typedef enum {
     MSG_REGISTER,
     MSG_INTEL,
@@ -39,6 +36,14 @@ typedef enum {
     MSG_TEST
 } MessageType;
 
+// Intel categories
+typedef enum {
+    INTEL_RADAR,
+    INTEL_SATELLITE,
+    INTEL_SUBMARINE
+} IntelType;
+
+// Target information
 typedef struct {
     char name[50];
     double latitude;
@@ -46,6 +51,7 @@ typedef struct {
     int priority;
 } Target;
 
+// Message structure
 typedef struct {
     MessageType type;
     char sender[20];
@@ -55,10 +61,6 @@ typedef struct {
     int mac_len;
 } SecureMessage;
 
-// Global declarations
-extern unsigned char control_key[KEY_SIZE];
-extern pthread_mutex_t log_mutex;
-
 // Function prototypes
 void handle_error(const char *msg, bool fatal);
 void init_crypto();
@@ -67,8 +69,11 @@ int encrypt_message(SecureMessage *msg, const unsigned char *key);
 int decrypt_message(SecureMessage *msg, const unsigned char *key);
 int verify_message(SecureMessage *msg, const unsigned char *key);
 void generate_random_key(unsigned char *key, int size);
-void log_message(const char *message);
-void process_and_decrypt_message(int client_socket, SecureMessage *msg, const unsigned char *key);
+void caesar_cipher(char *text, int shift, bool encrypt);
+void madryga_encrypt(char *data, size_t len, const char *key, bool encrypt);
+void log_message("Your log message:", true, LOG_ENCRYPTION_KEY);
+void print_hex(const char *label, const unsigned char *data, int len);
+void decrypt_log_file(LOG_FILE, LOG_ENCRYPTION_KEY);
 
-#endif
+#endif // COMMON_H
 
