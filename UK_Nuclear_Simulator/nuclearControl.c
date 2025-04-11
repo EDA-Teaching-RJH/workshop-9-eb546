@@ -46,7 +46,7 @@ void process_message(int client_socket, SecureMessage *msg) {
 
         case MSG_REGISTER:
             snprintf(log_msg, sizeof(log_msg), "%s registered with control", msg->sender);
-            log_message(log_msg);
+            log_message(log_msg, true);
             
             // Send acknowledgement
             SecureMessage response;
@@ -59,7 +59,7 @@ void process_message(int client_socket, SecureMessage *msg) {
             
         case MSG_INTEL:
             snprintf(log_msg, sizeof(log_msg), "Intel received from %s: %s", msg->sender, msg->payload);
-            log_message(log_msg);
+            log_message(log_msg, true);
             
             // In test mode, randomly decide if this is a threat
             if (test_mode && rand() % 100 < 30) { // 30% chance of threat in test mode
@@ -89,6 +89,10 @@ void process_message(int client_socket, SecureMessage *msg) {
                 encrypt_message(&launch_order, control_key);
                 send(client_socket, &launch_order, sizeof(launch_order), 0);
             }
+            break;
+
+        case MSG_DECRYPT_LOGS:
+            decrypt_log_file(LOG_FILE, LOG_ENCRYPTION_KEY);
             break;
             
         case MSG_LAUNCH_CONFIRM:
@@ -187,7 +191,7 @@ int main(int argc, char *argv[]) {
         inet_ntop(AF_INET, &address.sin_addr, ip_str, INET_ADDRSTRLEN);
         char log_msg[100];
         snprintf(log_msg, sizeof(log_msg), "New connection from %s", ip_str);
-        log_message(log_msg);
+        log_message(log_msg, true);
         
         // Create thread for client
         pthread_t thread_id;

@@ -118,8 +118,10 @@ int decrypt_message(SecureMessage *msg, const unsigned char *key) {
 
 // Verify message authenticity (HMAC)
 int verify_message(SecureMessage *msg, const unsigned char *key) {
-    // In a real system, implement HMAC verification here
-    return 1; // Placeholder
+    // Actual implementation would go here
+    (void)msg;  // Mark parameters as used to silence warnings
+    (void)key;
+    return 1; // Placeholder - in real system verify HMAC
 }
 
 // Generate random key
@@ -161,9 +163,14 @@ void madryga_encrypt(char *data, size_t len, const char *key, bool encrypt) {
 }
 
 // Add this to the process_message function in control_center.c
-case MSG_DECRYPT_LOGS:
-    decrypt_log_file(LOG_FILE, LOG_ENCRYPTION_KEY);
-    break;
+void some_function() {
+    switch(msg->type) {
+        case MSG_DECRYPT_LOGS:
+            decrypt_log_file(...);
+            break;
+        // ...
+    }
+}
 
 // Function to decrypt log file
 void decrypt_log_file(const char *filename, const char *encryption_key) {

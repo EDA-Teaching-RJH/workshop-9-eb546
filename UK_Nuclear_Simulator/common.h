@@ -32,7 +32,8 @@ typedef enum {
     MSG_LAUNCH_CONFIRM,
     MSG_STATUS,
     MSG_ERROR,
-    MSG_TEST
+    MSG_TEST,
+    MSG_DECRYPT_LOGS  // Add this new type
 } MessageType;
 
 // Intel categories
