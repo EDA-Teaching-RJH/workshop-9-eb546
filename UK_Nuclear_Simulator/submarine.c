@@ -8,16 +8,16 @@ static bool stealth_mode = false;
 void launch_missile(const char *target_info) {
     char log_msg[BUFFER_SIZE];
     snprintf(log_msg, sizeof(log_msg), "SUBMARINE: Launching missile at %s", target_info);
-    log_message(log_msg);
+    log_message(log_msg, true);  // Added second parameter
     
     // Simulate launch sequence
     for (int i = 5; i > 0; i--) {
         snprintf(log_msg, sizeof(log_msg), "Underwater launch in %d...", i);
-        log_message(log_msg);
+        log_message(log_msg, true);  // Added second parameter
         sleep(1);
     }
     
-    log_message("Missile launched! Engaging stealth mode", false);
+    log_message("Missile launched! Engaging stealth mode", true);  // Added second parameter
     stealth_mode = true;
 }
 
@@ -70,7 +70,7 @@ int main() {
         handle_error("Connection failed", true);
     }
     
-    log_message("Submarine connected to Control", false);
+    log_message("Submarine connected to Control", true);  // Added second parameter
     
     // Register with control
     SecureMessage msg;
@@ -121,20 +121,20 @@ int main() {
                                 encrypt_message(&response, submarine_key);
                                 send(sock, &response, sizeof(response), 0);
                             } else {
-                                log_message("Launch order received but capability offline or in stealth", false);
+                                log_message("Launch order received but capability offline or in stealth", true);  // Added second parameter
                             }
                             break;
                             
                         case MSG_STATUS:
-                            log_message(msg.payload);
+                            log_message(msg.payload, true);  // Added second parameter
                             break;
                             
                         default:
-                            log_message("Received unknown message type", false);
+                            log_message("Received unknown message type", true);  // Added second parameter
                             break;
                     }
                 } else {
-                    log_message("Message verification failed - possible security breach!", false);
+                    log_message("Message verification failed - possible security breach!", true);  // Added second parameter
                 }
             }
         }
@@ -146,4 +146,3 @@ int main() {
     cleanup_crypto();
     return 0;
 }
-
