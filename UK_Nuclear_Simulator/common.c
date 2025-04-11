@@ -162,16 +162,6 @@ void madryga_encrypt(char *data, size_t len, const char *key, bool encrypt) {
     }
 }
 
-// Add this to the process_message function in control_center.c
-void some_function() {
-    switch(msg->type) {
-        case MSG_DECRYPT_LOGS:
-            decrypt_log_file(...);
-            break;
-        // ...
-    }
-}
-
 // Function to decrypt log file
 void decrypt_log_file(const char *filename, const char *key) {
     FILE *file = fopen(filename, "r");
