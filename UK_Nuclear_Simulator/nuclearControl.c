@@ -1,14 +1,12 @@
 #include "common.h"
 
-// Global variables
 static unsigned char control_key[KEY_SIZE];
 static Target targets[MAX_TARGETS];
 static int target_count = 0;
 static bool test_mode = false;
 static pthread_mutex_t target_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-// Function to load targets from file
-void load_targets() {
+void load_targets(void) {
     FILE *file = fopen("targets.dat", "rb");
     if (file) {
         pthread_mutex_lock(&target_mutex);
@@ -21,8 +19,7 @@ void load_targets() {
     }
 }
 
-// Function to save targets to file
-void save_targets() {
+void save_targets(void) {
     FILE *file = fopen("targets.dat", "wb");
     if (file) {
         pthread_mutex_lock(&target_mutex);
@@ -30,67 +27,47 @@ void save_targets() {
         pthread_mutex_unlock(&target_mutex);
         fclose(file);
         log_message("Saved targets to file", true);
-    } else {
-        handle_error("Failed to save targets", false);
     }
 }
 
-// Function to process incoming messages
 void process_message(int client_socket, SecureMessage *msg) {
-    char log_msg[BUFFER_SIZE * 2];
-    
-    switch(msg->type) {
-        case MSG_REGISTER: {
+    if (!msg) return;
+    char log_msg[BUFFER_SIZE];
+    switch (msg->type) {
+        case MSG_REGISTER:
             snprintf(log_msg, sizeof(log_msg), "%s registered with control", msg->sender);
             log_message(log_msg, true);
-            
-            SecureMessage response;
-            response.type = MSG_STATUS;
-            strcpy(response.sender, "CONTROL");
-            strcpy(response.payload, "Registered successfully");
+            SecureMessage response = { .type = MSG_STATUS, .sender = "CONTROL" };
+            strncpy(response.payload, "Registered successfully", sizeof(response.payload) - 1);
+            response.payload[sizeof(response.payload) - 1] = '\0';
             encrypt_message(&response, control_key);
             send(client_socket, &response, sizeof(response), 0);
             break;
-        }
-            
-        case MSG_INTEL: {
+        case MSG_INTEL:
             snprintf(log_msg, sizeof(log_msg), "Intel from %s: %s", msg->sender, msg->payload);
             log_message(log_msg, true);
-            
-            if (test_mode && rand() % 100 < 30) {
+            if (test_mode && rand() % 100 < 30 && target_count > 0) {
                 log_message("TEST MODE: Simulated threat detected!", true);
-                
                 pthread_mutex_lock(&target_mutex);
                 int target_idx = rand() % target_count;
                 Target target = targets[target_idx];
                 pthread_mutex_unlock(&target_mutex);
-                
                 const char *platform = (target.longitude < -30) ? "SUBMARINE" : "MISSILE_SILO";
-                snprintf(log_msg, sizeof(log_msg), 
-                        "TEST MODE: Launching nuclear strike on %s via %s", 
-                        target.name, platform);
+                snprintf(log_msg, sizeof(log_msg), "TEST MODE: Launching nuclear strike on %s via %s", target.name, platform);
                 log_message(log_msg, true);
-                
-                SecureMessage launch_order;
-                launch_order.type = MSG_LAUNCH_ORDER;
-                strcpy(launch_order.sender, "CONTROL");
-                snprintf(launch_order.payload, sizeof(launch_order.payload),
-                        "TARGET:%s,LAT:%f,LON:%f", target.name, target.latitude, target.longitude);
+                SecureMessage launch_order = { .type = MSG_LAUNCH_ORDER, .sender = "CONTROL" };
+                snprintf(launch_order.payload, sizeof(launch_order.payload), "TARGET:%s,LAT:%f,LON:%f", target.name, target.latitude, target.longitude);
                 encrypt_message(&launch_order, control_key);
                 send(client_socket, &launch_order, sizeof(launch_order), 0);
             }
             break;
-        }
-            
         case MSG_DECRYPT_LOGS:
             decrypt_log_file(LOG_FILE, LOG_ENCRYPTION_KEY);
             break;
-            
         case MSG_LAUNCH_CONFIRM:
             snprintf(log_msg, sizeof(log_msg), "Launch confirmed by %s: %s", msg->sender, msg->payload);
             log_message(log_msg, true);
             break;
-            
         default:
             snprintf(log_msg, sizeof(log_msg), "Unknown message type: %d", (int)msg->type);
             log_message(log_msg, true);
@@ -98,20 +75,11 @@ void process_message(int client_socket, SecureMessage *msg) {
     }
 }
 
-// Thread function to handle client connections
 void *handle_client(void *arg) {
-    int client_socket = *((int *)arg);
+    int client_socket = *(int *)arg;
     free(arg);
-    
     SecureMessage msg;
-    int bytes_received;
-    
-    while ((bytes_received = recv(client_socket, &msg, sizeof(msg), 0)) > 0) {
-        if (bytes_received != sizeof(msg)) {
-            log_message("Received incomplete message", true);
-            continue;
-        }
-        
+    while (recv(client_socket, &msg, sizeof(msg), 0) > 0) {
         if (verify_message(&msg, control_key)) {
             decrypt_message(&msg, control_key);
             process_message(client_socket, &msg);
@@ -119,87 +87,62 @@ void *handle_client(void *arg) {
             log_message("Message verification failed - possible security breach!", true);
         }
     }
-    
     close(client_socket);
     return NULL;
 }
 
 int main(int argc, char *argv[]) {
-    // Check for test mode
-    if (argc > 1 && strcmp(argv[1], "--test") == 0) {
-        test_mode = true;
-        log_message("TEST MODE ACTIVATED - Simulated war scenario", true);
-    }
-    
-    // Initialize crypto
+    test_mode = (argc > 1 && strcmp(argv[1], "--test") == 0);
+    if (test_mode) log_message("TEST MODE ACTIVATED - Simulated war scenario", true);
+
     init_crypto();
     generate_random_key(control_key, KEY_SIZE);
-    
-    // Load targets
     load_targets();
-    
-    // Create server socket
+
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_fd < 0) {
-        handle_error("Socket creation failed", true);
-    }
-    
-    // Set socket options
+    if (server_fd < 0) handle_error("Socket creation failed", true);
+
     int opt = 1;
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
-        handle_error("Setsockopt failed", true);
-    }
-    
-    // Bind socket
-    struct sockaddr_in address;
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(CONTROL_PORT);
-    
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        handle_error("Bind failed", true);
-    }
-    
-    // Listen for connections
-    if (listen(server_fd, MAX_CLIENTS) < 0) {
-        handle_error("Listen failed", true);
-    }
-    
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) handle_error("Setsockopt failed", true);
+
+    struct sockaddr_in address = { .sin_family = AF_INET, .sin_addr.s_addr = INADDR_ANY, .sin_port = htons(CONTROL_PORT) };
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) handle_error("Bind failed", true);
+    if (listen(server_fd, MAX_CLIENTS) < 0) handle_error("Listen failed", true);
+
     log_message("Nuclear Control Center operational and listening for connections", true);
-    
-    // Main server loop
+
     while (1) {
-        int new_socket;
         int addrlen = sizeof(address);
-        
-        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
+        int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen);
+        if (new_socket < 0) {
             handle_error("Accept failed", false);
             continue;
         }
-        
-        // Log new connection
+
         char ip_str[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &address.sin_addr, ip_str, INET_ADDRSTRLEN);
         char log_msg[100];
         snprintf(log_msg, sizeof(log_msg), "New connection from %s", ip_str);
         log_message(log_msg, true);
-        
-        // Create thread for client
-        pthread_t thread_id;
+
         int *client_socket = malloc(sizeof(int));
+        if (!client_socket) {
+            handle_error("Memory allocation failed", false);
+            close(new_socket);
+            continue;
+        }
         *client_socket = new_socket;
-        
-        if (pthread_create(&thread_id, NULL, handle_client, (void*)client_socket) < 0) {
+
+        pthread_t thread_id;
+        if (pthread_create(&thread_id, NULL, handle_client, client_socket) < 0) {
             handle_error("Thread creation failed", false);
             free(client_socket);
             close(new_socket);
+        } else {
+            pthread_detach(thread_id);
         }
-        
-        // Detach thread so resources are automatically freed on exit
-        pthread_detach(thread_id);
     }
-    
-    // Cleanup (though we never get here in this simple example)
+
     close(server_fd);
     cleanup_crypto();
     save_targets();
