@@ -1,6 +1,7 @@
 #include "common.h"
 #include <stdarg.h>
 #include <sys/time.h>
+#include <ctype.h>
 
 // Global variables (if needed)
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -18,26 +19,34 @@ void cleanup_crypto() {
 }
 
 // Log messages to file and stdout
-void log_message(const char *message) {
+void log_message(const char *message, bool encrypt_logs) {
     pthread_mutex_lock(&log_mutex);
     
     FILE *log_file = fopen(LOG_FILE, "a");
     if (log_file) {
         time_t now = time(NULL);
         char *time_str = ctime(&now);
-        time_str[strlen(time_str)-1] = '\0'; // Remove newline
+        time_str[strlen(time_str)-1] = '\0';
         
-        fprintf(log_file, "[%s] %s\n", time_str, message);
+        if (encrypt_logs) {
+            char encrypted[BUFFER_SIZE];
+            strncpy(encrypted, message, BUFFER_SIZE-1);
+            caesar_cipher(encrypted, 5, true);
+            madryga_encrypt(encrypted, strlen(encrypted), LOG_ENCRYPTION_KEY, true);
+            fprintf(log_file, "[%s] %s\n", time_str, encrypted);
+        } else {
+            fprintf(log_file, "[%s] %s\n", time_str, message);
+        }
         fclose(log_file);
     }
     
-    printf("[LOG] %s\n", message);
+    printf("[LOG] %s\n", message); // Always show plaintext in console
     pthread_mutex_unlock(&log_mutex);
 }
 
-// Handle errors (print and optionally exit)
+// Update handle_error to match
 void handle_error(const char *msg, bool fatal) {
-    log_message(msg);
+    log_message(msg, false); // Don't encrypt error messages
     if (fatal) {
         exit(EXIT_FAILURE);
     }
@@ -118,26 +127,24 @@ void generate_random_key(unsigned char *key, int size) {
     RAND_bytes(key, size);
 }
 
-// Add these new functions to common.c (or create a new file for encryption utilities)
-
-// Caesar cipher encryption/decryption
+// Caesar cipher implementation
 void caesar_cipher(char *text, int shift, bool encrypt) {
     if (!text) return;
     
-    shift = shift % 26; // Ensure shift is within alphabet range
+    shift = shift % 26;
     if (!encrypt) {
-        shift = -shift; // Reverse for decryption
+        shift = -shift;
     }
 
     for (int i = 0; text[i] != '\0'; i++) {
         if (isalpha(text[i])) {
             char base = isupper(text[i]) ? 'A' : 'a';
-            text[i] = ((text[i] - base + shift + 26)) % 26 + base;
+            text[i] = ((text[i] - base + shift + 26) % 26) + base;
         }
     }
 }
 
-// Madryga encryption (simplified version)
+// Madryga encryption (simplified)
 void madryga_encrypt(char *data, size_t len, const char *key, bool encrypt) {
     if (!data || !key || len == 0) return;
     
@@ -153,35 +160,10 @@ void madryga_encrypt(char *data, size_t len, const char *key, bool encrypt) {
     }
 }
 
-// Modified log_message function with encryption options
-void log_message(const char *message, bool encrypt_logs, const char *encryption_key) {
-    pthread_mutex_lock(&log_mutex);
-    
-    // Create a copy of the message we can modify
-    char log_buffer[BUFFER_SIZE];
-    strncpy(log_buffer, message, sizeof(log_buffer) - 1);
-    log_buffer[sizeof(log_buffer) - 1] = '\0';
-    
-    if (encrypt_logs && encryption_key) {
-        // Apply both encryption methods (in real use, choose one)
-        caesar_cipher(log_buffer, 5, true); // Caesar shift of 5
-        madryga_encrypt(log_buffer, strlen(log_buffer), encryption_key, true);
-    }
-    
-    FILE *log_file = fopen(LOG_FILE, "a");
-    if (log_file) {
-        time_t now = time(NULL);
-        char *time_str = ctime(&now);
-        time_str[strlen(time_str)-1] = '\0'; // Remove newline
-        
-        fprintf(log_file, "[%s] %s\n", time_str, log_buffer);
-        fclose(log_file);
-    }
-    
-    // For stdout, show the original message
-    printf("[LOG] %s\n", message);
-    pthread_mutex_unlock(&log_mutex);
-}
+// Add this to the process_message function in control_center.c
+case MSG_DECRYPT_LOGS:
+    decrypt_log_file(LOG_FILE, LOG_ENCRYPTION_KEY);
+    break;
 
 // Function to decrypt log file
 void decrypt_log_file(const char *filename, const char *encryption_key) {
@@ -194,32 +176,31 @@ void decrypt_log_file(const char *filename, const char *encryption_key) {
     printf("\nDecrypted Log Contents:\n");
     printf("----------------------\n");
     
-    char line[BUFFER_SIZE];
+    char line[BUFFER_SIZE * 2];
     while (fgets(line, sizeof(line), file)) {
-        // Find where the actual message starts (after timestamp)
-        char *message = strchr(line, ']');
-        if (message && *(message + 1)) {
-            message += 2; // Skip "] "
-            
-            // Create a copy we can modify
-            char decrypted[BUFFER_SIZE];
-            strncpy(decrypted, message, sizeof(decrypted) - 1);
-            decrypted[sizeof(decrypted) - 1] = '\0';
-            
-            // Remove newline if present
-            char *newline = strchr(decrypted, '\n');
-            if (newline) *newline = '\0';
-            
-            // Apply decryption (reverse order of encryption)
-            madryga_encrypt(decrypted, strlen(decrypted), encryption_key, false);
-            caesar_cipher(decrypted, 5, false); // Reverse Caesar shift of 5
-            
-            // Print timestamp with decrypted message
-            *message = '\0'; // Truncate original line at the message start
-            printf("%s] %s\n", line, decrypted);
-        } else {
-            printf("%s", line); // Print line as-is if we can't parse it
+        // Find where the message starts after timestamp
+        char *message_start = strchr(line, ']');
+        if (!message_start || *(message_start + 1) == '\0') {
+            printf("%s", line);
+            continue;
         }
+        
+        // Extract the message part
+        char message[BUFFER_SIZE];
+        strncpy(message, message_start + 2, sizeof(message) - 1);
+        message[sizeof(message) - 1] = '\0';
+        
+        // Remove newline if present
+        char *newline = strchr(message, '\n');
+        if (newline) *newline = '\0';
+        
+        // Apply decryption (reverse order of encryption)
+        madryga_encrypt(message, strlen(message), encryption_key, false);
+        caesar_cipher(message, 5, false);
+        
+        // Print timestamp with decrypted message
+        *message_start = '\0';
+        printf("%s] %s\n", line, message);
     }
     
     fclose(file);

@@ -16,7 +16,7 @@ void launch_missile(const char *target_info) {
         sleep(1);
     }
     
-    log_message("Missile launched!");
+    log_message("Missile launched!", false);
 }
 
 int main() {
@@ -46,7 +46,7 @@ int main() {
         handle_error("Connection failed", true);
     }
     
-    log_message("Missile Silo connected to Control");
+    log_message("Missile Silo connected to Control", false);
     
     // Register with control
     SecureMessage msg;
@@ -81,7 +81,7 @@ int main() {
                         encrypt_message(&response, silo_key);
                         send(sock, &response, sizeof(response), 0);
                     } else {
-                        log_message("Launch order received but capability offline");
+                        log_message("Launch order received but capability offline", false);
                     }
                     break;
                     
@@ -90,11 +90,11 @@ int main() {
                     break;
                     
                 default:
-                    log_message("Received unknown message type");
+                    log_message("Received unknown message type", false);
                     break;
             }
         } else {
-            log_message("Message verification failed - possible security breach!");
+            log_message("Message verification failed - possible security breach!", false);
         }
     }
     

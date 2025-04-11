@@ -1,27 +1,34 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -O2 -I. $(shell pkg-config --cflags openssl)
-LDFLAGS = $(shell pkg-config --libs openssl) -lpthread
+CFLAGS = -Wall -Wextra -O2 -I.
+LDFLAGS = -lssl -lcrypto -lpthread
 
-TARGETS = control_center missile_silo radar_station satellite submarine
+all: nuclearControl missileSilo submarine radar satellite
 
-all: $(TARGETS)
+nuclearControl: nuclearControl.c common.c common.h
+	$(CC) $(CFLAGS) -o $@ $< common.c $(LDFLAGS)
 
-nuclearControl: nuclearControl.c common.c
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+missileSilo: missileSilo.c common.c common.h
+	$(CC) $(CFLAGS) -o $@ $< common.c $(LDFLAGS)
 
-missileSilo: missileSilo.c common.c
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+submarine: submarine.c common.c common.h
+	$(CC) $(CFLAGS) -o $@ $< common.c $(LDFLAGS)
 
-radar: radar.c common.c
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+radar: radar.c common.c common.h
+	$(CC) $(CFLAGS) -o $@ $< common.c $(LDFLAGS)
 
-satellite: satellite.c common.c
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-submarine: submarine.c common.c
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+satellite: satellite.c common.c common.h
+	$(CC) $(CFLAGS) -o $@ $< common.c $(LDFLAGS)
 
 clean:
-	rm -f $(TARGETS) nuclear_log.txt
+	rm -f nuclearControl missileSilo submarine radar satellite
+	rm -f nuclear_log.txt targets.dat
 
-.PHONY: all clean
+test: all
+	./nuclearControl --test &
+	./missileSilo &
+	./submarine &
+	./radar &
+	./satellite &
+
+.PHONY: all clean test
+

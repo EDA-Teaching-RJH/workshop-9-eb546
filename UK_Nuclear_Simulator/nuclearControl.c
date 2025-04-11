@@ -6,7 +6,6 @@ static Target targets[MAX_TARGETS];
 static int target_count = 0;
 static bool test_mode = false;
 static pthread_mutex_t target_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Function to load targets from file
 void load_targets() {
@@ -16,9 +15,9 @@ void load_targets() {
         target_count = fread(targets, sizeof(Target), MAX_TARGETS, file);
         pthread_mutex_unlock(&target_mutex);
         fclose(file);
-        log_message("Loaded targets from file");
+        log_message("Loaded targets from file", true);
     } else {
-        log_message("No targets file found, starting with empty target list");
+        log_message("No targets file found, starting with empty target list", true);
     }
 }
 
@@ -30,7 +29,7 @@ void save_targets() {
         fwrite(targets, sizeof(Target), target_count, file);
         pthread_mutex_unlock(&target_mutex);
         fclose(file);
-        log_message("Saved targets to file");
+        log_message("Saved targets to file", true);
     } else {
         handle_error("Failed to save targets", false);
     }
@@ -41,6 +40,10 @@ void process_message(int client_socket, SecureMessage *msg) {
     char log_msg[BUFFER_SIZE * 2];
     
     switch(msg->type) {
+        case MSG_DECRYPT_LOGS:
+        decrypt_log_file(LOG_FILE, LOG_ENCRYPTION_KEY);
+        break;
+
         case MSG_REGISTER:
             snprintf(log_msg, sizeof(log_msg), "%s registered with control", msg->sender);
             log_message(log_msg);
@@ -60,7 +63,7 @@ void process_message(int client_socket, SecureMessage *msg) {
             
             // In test mode, randomly decide if this is a threat
             if (test_mode && rand() % 100 < 30) { // 30% chance of threat in test mode
-                log_message("TEST MODE: Simulated threat detected!");
+                log_message("TEST MODE: Simulated threat detected!", true);
                 
                 // Select a random target
                 pthread_mutex_lock(&target_mutex);
@@ -74,7 +77,7 @@ void process_message(int client_socket, SecureMessage *msg) {
                 snprintf(log_msg, sizeof(log_msg), 
                         "TEST MODE: Launching nuclear strike on %s via %s", 
                         target.name, platform);
-                log_message(log_msg);
+                log_message(log_msg, true);
                 
                 // Prepare launch order
                 SecureMessage launch_order;
@@ -90,12 +93,12 @@ void process_message(int client_socket, SecureMessage *msg) {
             
         case MSG_LAUNCH_CONFIRM:
             snprintf(log_msg, sizeof(log_msg), "Launch confirmed by %s: %s", msg->sender, msg->payload);
-            log_message(log_msg);
+            log_message(log_msg, true);
             break;
             
         default:
             snprintf(log_msg, sizeof(log_msg), "Unknown message type from %s", msg->sender);
-            log_message(log_msg);
+            log_message(log_msg, true);
             break;
     }
 }
@@ -110,7 +113,7 @@ void *handle_client(void *arg) {
     
     while ((bytes_received = recv(client_socket, &msg, sizeof(msg), 0)) > 0) {
         if (bytes_received != sizeof(msg)) {
-            log_message("Received incomplete message");
+            log_message("Received incomplete message", true);
             continue;
         }
         
@@ -118,7 +121,7 @@ void *handle_client(void *arg) {
             decrypt_message(&msg, control_key);
             process_message(client_socket, &msg);
         } else {
-            log_message("Message verification failed - possible security breach!");
+            log_message("Message verification failed - possible security breach!", true);
         }
     }
     
@@ -130,7 +133,7 @@ int main(int argc, char *argv[]) {
     // Check for test mode
     if (argc > 1 && strcmp(argv[1], "--test") == 0) {
         test_mode = true;
-        log_message("TEST MODE ACTIVATED - Simulated war scenario");
+        log_message("TEST MODE ACTIVATED - Simulated war scenario", true);
     }
     
     // Initialize crypto
@@ -167,7 +170,7 @@ int main(int argc, char *argv[]) {
         handle_error("Listen failed", true);
     }
     
-    log_message("Nuclear Control Center operational and listening for connections");
+    log_message("Nuclear Control Center operational and listening for connections", true);
     
     // Main server loop
     while (1) {

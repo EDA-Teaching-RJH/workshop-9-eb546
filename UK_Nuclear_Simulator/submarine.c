@@ -17,7 +17,7 @@ void launch_missile(const char *target_info) {
         sleep(1);
     }
     
-    log_message("Missile launched! Engaging stealth mode");
+    log_message("Missile launched! Engaging stealth mode", false);
     stealth_mode = true;
 }
 
@@ -70,7 +70,7 @@ int main() {
         handle_error("Connection failed", true);
     }
     
-    log_message("Submarine connected to Control");
+    log_message("Submarine connected to Control", false);
     
     // Register with control
     SecureMessage msg;
@@ -121,7 +121,7 @@ int main() {
                                 encrypt_message(&response, submarine_key);
                                 send(sock, &response, sizeof(response), 0);
                             } else {
-                                log_message("Launch order received but capability offline or in stealth");
+                                log_message("Launch order received but capability offline or in stealth", false);
                             }
                             break;
                             
@@ -130,11 +130,11 @@ int main() {
                             break;
                             
                         default:
-                            log_message("Received unknown message type");
+                            log_message("Received unknown message type", false);
                             break;
                     }
                 } else {
-                    log_message("Message verification failed - possible security breach!");
+                    log_message("Message verification failed - possible security breach!", false);
                 }
             }
         }

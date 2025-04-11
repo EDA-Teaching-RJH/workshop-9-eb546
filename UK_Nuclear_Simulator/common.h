@@ -23,7 +23,6 @@
 #define IV_SIZE 16
 #define MAX_TARGETS 100
 #define LOG_FILE "nuclear_log.txt"
-#define LOG_ENCRYPTION_KEY "NuclearLogEncryptKey123"
 
 // Message types
 typedef enum {
@@ -69,11 +68,15 @@ int encrypt_message(SecureMessage *msg, const unsigned char *key);
 int decrypt_message(SecureMessage *msg, const unsigned char *key);
 int verify_message(SecureMessage *msg, const unsigned char *key);
 void generate_random_key(unsigned char *key, int size);
+void log_message(const char *message, bool encrypt_logs);
+void print_hex(const char *label, const unsigned char *data, int len);
+// Add these new function prototypes
 void caesar_cipher(char *text, int shift, bool encrypt);
 void madryga_encrypt(char *data, size_t len, const char *key, bool encrypt);
-void log_message("Your log message:", true, LOG_ENCRYPTION_KEY);
-void print_hex(const char *label, const unsigned char *data, int len);
-void decrypt_log_file(LOG_FILE, LOG_ENCRYPTION_KEY);
+void decrypt_log_file(const char *filename, const char *encryption_key);
+
+// Add log encryption key
+#define LOG_ENCRYPTION_KEY "NuclearLogEncryptKey123"
 
 #endif // COMMON_H
 

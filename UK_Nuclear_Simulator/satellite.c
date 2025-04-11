@@ -51,7 +51,7 @@ int main() {
         handle_error("Connection failed", true);
     }
     
-    log_message("Surveillance satellite connected to Control");
+    log_message("Surveillance satellite connected to Control", false);
     
     // Register with control
     SecureMessage msg;
@@ -92,10 +92,10 @@ int main() {
                     if (msg.type == MSG_STATUS) {
                         log_message(msg.payload);
                     } else {
-                        log_message("Received unexpected message type");
+                        log_message("Received unexpected message type", false);
                     }
                 } else {
-                    log_message("Message verification failed - possible security breach!");
+                    log_message("Message verification failed - possible security breach!", false);
                 }
             }
         }
