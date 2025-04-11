@@ -26,14 +26,14 @@
 
 // Message types
 typedef enum {
-    MSG_REGISTER,
+    MSG_REGISTER = 0,
     MSG_INTEL,
-    MSG_LAUNCH_ORDER,
+    MSG_LAUNCH_ORDER, 
     MSG_LAUNCH_CONFIRM,
     MSG_STATUS,
     MSG_ERROR,
     MSG_TEST,
-    MSG_DECRYPT_LOGS  // Add this new type
+    MSG_DECRYPT_LOGS  // Unique value
 } MessageType;
 
 // Intel categories

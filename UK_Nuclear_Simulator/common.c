@@ -191,24 +191,26 @@ void decrypt_log_file(const char *filename, const char *key) {
             char message[BUFFER_SIZE];
             strncpy(message, msg_start+2, sizeof(message)-1);
         
-        // Extract the message part
-        char message[BUFFER_SIZE];
-        strncpy(message, message_start + 2, sizeof(message) - 1);
-        message[sizeof(message) - 1] = '\0';
+            // Remove newline if present
+            char *newline = strchr(message, '\n');
+            if (newline) *newline = '\0';
         
-        // Remove newline if present
-        char *nl = strchr(message, '\n');
-            if (nl) *nl = '\0';
+            // Apply decryption (reverse order of encryption)
+            madryga_encrypt(message, strlen(message), key, false);
+            caesar_cipher(message, 5, false);
         
-        // Apply decryption (reverse order of encryption)
-        madryga_encrypt(message, strlen(message), encryption_key, false);
-        caesar_cipher(message, 5, false);
-        
-        // Print timestamp with decrypted message
-        *message_start = '\0';
-        printf("%s] %s\n", line, message);
+            printf("%s] %s\n", line, message);
+        }
     }
     fclose(file);
     printf("----------------------\n");
 }
 
+void handle_message(SecureMessage *msg) {
+    switch(msg->type) {
+        case MSG_DECRYPT_LOGS:
+            decrypt_log_file(LOG_FILE, LOG_ENCRYPTION_KEY);
+            break;
+        // ... other cases ...
+    }
+}

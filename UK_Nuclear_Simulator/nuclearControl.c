@@ -61,6 +61,7 @@ void process_message(int client_socket, SecureMessage *msg) {
         case MSG_INTEL:
             snprintf(log_msg, sizeof(log_msg), "Intel received from %s: %s", msg->sender, msg->payload);
             log_message(log_msg, true);
+            break;
             
             // In test mode, randomly decide if this is a threat
             if (test_mode && rand() % 100 < 30) { // 30% chance of threat in test mode
@@ -102,7 +103,7 @@ void process_message(int client_socket, SecureMessage *msg) {
             break;
             
         default:
-            snprintf(log_msg, sizeof(log_msg), "Unknown message type from %s", msg->sender);
+            snprintf(log_msg, sizeof(log_msg), "Unknown message type from %d", msg->sender);
             log_message(log_msg, true);
             break;
     }
