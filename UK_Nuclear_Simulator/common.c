@@ -191,9 +191,9 @@ void decrypt_log_file(const char *filename, const char *key) {
             char message[BUFFER_SIZE];
             strncpy(message, msg_start+2, sizeof(message)-1);
         
-            // Remove newline if present
-            char *newline = strchr(message, '\n');
-            if (newline) *newline = '\0';
+            // Remove newline
+            char *nl = strchr(message, '\n');
+            if (nl) *nl = '\0';
         
             // Apply decryption (reverse order of encryption)
             madryga_encrypt(message, strlen(message), key, false);
@@ -207,10 +207,26 @@ void decrypt_log_file(const char *filename, const char *key) {
 }
 
 void handle_message(SecureMessage *msg) {
+    if (!msg) return;
+
     switch(msg->type) {
         case MSG_DECRYPT_LOGS:
             decrypt_log_file(LOG_FILE, LOG_ENCRYPTION_KEY);
             break;
         // ... other cases ...
+
+        case MSG_REGISTER:
+        case MSG_INTEL:
+        case MSG_LAUNCH_ORDER:
+        case MSG_LAUNCH_CONFIRM:
+        case MSG_STATUS:
+        case MSG_ERROR:
+        case MSG_TEST:
+            // Handle other message types
+            break;
+            
+        default:
+            log_message("Unknown message type in handle_message", true);
+            break;
     }
 }

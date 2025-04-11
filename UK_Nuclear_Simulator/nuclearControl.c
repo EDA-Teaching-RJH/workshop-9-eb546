@@ -40,9 +40,6 @@ void process_message(int client_socket, SecureMessage *msg) {
     char log_msg[BUFFER_SIZE * 2];
     
     switch(msg->type) {
-        case MSG_DECRYPT_LOGS:
-        decrypt_log_file(LOG_FILE, LOG_ENCRYPTION_KEY);
-        break;
 
         case MSG_REGISTER:
             snprintf(log_msg, sizeof(log_msg), "%s registered with control", msg->sender);
