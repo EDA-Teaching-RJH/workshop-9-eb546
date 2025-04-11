@@ -11,17 +11,14 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
-#include <openssl/evp.h>
-#include <openssl/rand.h>
-#include <openssl/err.h>
 #include <pthread.h>
 #include <ctype.h>
+#include <stdint.h> // For uint8_t
 
 #define CONTROL_PORT 8080
 #define MAX_CLIENTS 10
 #define BUFFER_SIZE 1024
 #define KEY_SIZE 32
-#define IV_SIZE 16
 #define MAX_TARGETS 100
 #define LOG_FILE "nuclear_log.txt"
 #define LOG_ENCRYPTION_KEY "NuclearLogEncryptKey123"
@@ -53,25 +50,20 @@ typedef struct {
     int priority;
 } Target;
 
-// Message structure
+// Message structure (removed iv, mac, mac_len)
 typedef struct {
     MessageType type;
     char sender[20];
-    char payload[BUFFER_SIZE - sizeof(MessageType) - 20 - IV_SIZE - EVP_MAX_MD_SIZE - sizeof(int)];
-    unsigned char iv[IV_SIZE];
-    unsigned char mac[EVP_MAX_MD_SIZE];
-    int mac_len;
+    char payload[BUFFER_SIZE - sizeof(MessageType) - 20];
 } SecureMessage;
 
 // Function prototypes
-void init_crypto(void);
-void cleanup_crypto(void);
 void log_message(const char *message, bool encrypt_logs);
 void handle_error(const char *msg, bool fatal);
-int encrypt_message(SecureMessage *msg, const unsigned char *key);
-int decrypt_message(SecureMessage *msg, const unsigned char *key);
-int verify_message(SecureMessage *msg, const unsigned char *key);
-void generate_random_key(unsigned char *key, int size);
+int encrypt_message(SecureMessage *msg, const uint8_t *key);
+int decrypt_message(SecureMessage *msg, const uint8_t *key);
+int verify_message(SecureMessage *msg, const uint8_t *key);
+void generate_random_key(uint8_t *key, int size);
 void caesar_cipher(char *text, int shift, bool encrypt);
 void madryga_encrypt(char *data, size_t len, const char *key, bool encrypt);
 void decrypt_log_file(const char *filename, const char *key);

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static unsigned char silo_key[KEY_SIZE];
+static uint8_t silo_key[KEY_SIZE];
 static bool launch_capability = true;
 
 void launch_missile(const char *target_info) {
@@ -16,7 +16,7 @@ void launch_missile(const char *target_info) {
 }
 
 int main(void) {
-    init_crypto();
+    // Use a fixed key for simplicity
     memcpy(silo_key, "SECRET_KEY_MISSILE_SILO_1234567890", KEY_SIZE);
 
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -66,7 +66,5 @@ int main(void) {
     }
 
     close(sock);
-    cleanup_crypto();
     return 0;
 }
-

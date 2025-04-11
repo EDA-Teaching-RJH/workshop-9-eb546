@@ -1,8 +1,8 @@
 #include "common.h"
 
-static unsigned char radar_key[KEY_SIZE];
+static uint8_t radar_key[KEY_SIZE];
 
-void perform_radar_sweep(int sock, unsigned char *key) {
+void perform_radar_sweep(int sock, uint8_t *key) {
     const char *reports[] = {
         "Airspace clear",
         "Detected commercial aircraft at 30,000ft",
@@ -17,7 +17,6 @@ void perform_radar_sweep(int sock, unsigned char *key) {
 }
 
 int main(void) {
-    init_crypto();
     memcpy(radar_key, "SECRET_KEY_RADAR_1234567890", KEY_SIZE);
 
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -56,6 +55,6 @@ int main(void) {
     }
 
     close(sock);
-    cleanup_crypto();
     return 0;
 }
+

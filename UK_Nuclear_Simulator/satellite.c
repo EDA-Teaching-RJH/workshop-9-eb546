@@ -1,8 +1,8 @@
 #include "common.h"
 
-static unsigned char satellite_key[KEY_SIZE];
+static uint8_t satellite_key[KEY_SIZE];
 
-void capture_imagery(int sock, unsigned char *key) {
+void capture_imagery(int sock, uint8_t *key) {
     const char *reports[] = {
         "No unusual activity detected",
         "Possible missile silo activity",
@@ -17,7 +17,6 @@ void capture_imagery(int sock, unsigned char *key) {
 }
 
 int main(void) {
-    init_crypto();
     memcpy(satellite_key, "SECRET_KEY_SATELLITE_123456", KEY_SIZE);
 
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -57,7 +56,5 @@ int main(void) {
     }
 
     close(sock);
-    cleanup_crypto();
     return 0;
 }
-

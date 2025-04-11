@@ -2,16 +2,6 @@
 
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void init_crypto(void) {
-    OpenSSL_add_all_algorithms();
-    ERR_load_crypto_strings();
-}
-
-void cleanup_crypto(void) {
-    EVP_cleanup();
-    ERR_free_strings();
-}
-
 void log_message(const char *message, bool encrypt_logs) {
     if (!message) return;
     pthread_mutex_lock(&log_mutex);
@@ -50,87 +40,35 @@ void handle_error(const char *msg, bool fatal) {
     }
 }
 
-int encrypt_message(SecureMessage *msg, const unsigned char *key) {
+int encrypt_message(SecureMessage *msg, const uint8_t *key) {
     if (!msg || !key) return 0;
-
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    if (!ctx) return 0;
-
-    RAND_bytes(msg->iv, IV_SIZE);
-
-    if (EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, msg->iv) != 1) {
-        EVP_CIPHER_CTX_free(ctx);
-        return 0;
-    }
-
-    int len, ciphertext_len = 0;
-    unsigned char plaintext[BUFFER_SIZE];
-    int plaintext_len = strlen(msg->payload);
-    if (plaintext_len >= BUFFER_SIZE) plaintext_len = BUFFER_SIZE - 1;
-    memcpy(plaintext, msg->payload, plaintext_len);
-    plaintext[plaintext_len] = '\0';
-
-    if (EVP_EncryptUpdate(ctx, (unsigned char *)msg->payload, &len, plaintext, plaintext_len) != 1) {
-        EVP_CIPHER_CTX_free(ctx);
-        return 0;
-    }
-    ciphertext_len += len;
-
-    if (EVP_EncryptFinal_ex(ctx, (unsigned char *)msg->payload + len, &len) != 1) {
-        EVP_CIPHER_CTX_free(ctx);
-        return 0;
-    }
-    ciphertext_len += len;
-
-    msg->payload[ciphertext_len] = '\0';
-    EVP_CIPHER_CTX_free(ctx);
+    // Use the first byte of the key as the shift value (1-255)
+    int shift = key[0] % 95 + 1; // Ensure shift is between 1 and 95
+    caesar_cipher(msg->payload, shift, true);
     return 1;
 }
 
-int decrypt_message(SecureMessage *msg, const unsigned char *key) {
+int decrypt_message(SecureMessage *msg, const uint8_t *key) {
     if (!msg || !key) return 0;
-
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    if (!ctx) return 0;
-
-    if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, msg->iv) != 1) {
-        EVP_CIPHER_CTX_free(ctx);
-        return 0;
-    }
-
-    int len, plaintext_len = 0;
-    unsigned char ciphertext[BUFFER_SIZE];
-    int ciphertext_len = strlen(msg->payload);
-    if (ciphertext_len >= BUFFER_SIZE) ciphertext_len = BUFFER_SIZE - 1;
-    memcpy(ciphertext, msg->payload, ciphertext_len);
-    ciphertext[ciphertext_len] = '\0';
-
-    if (EVP_DecryptUpdate(ctx, (unsigned char *)msg->payload, &len, ciphertext, ciphertext_len) != 1) {
-        EVP_CIPHER_CTX_free(ctx);
-        return 0;
-    }
-    plaintext_len += len;
-
-    if (EVP_DecryptFinal_ex(ctx, (unsigned char *)msg->payload + len, &len) != 1) {
-        EVP_CIPHER_CTX_free(ctx);
-        return 0;
-    }
-    plaintext_len += len;
-
-    msg->payload[plaintext_len] = '\0';
-    EVP_CIPHER_CTX_free(ctx);
+    // Use the same shift value as in encrypt_message
+    int shift = key[0] % 95 + 1;
+    caesar_cipher(msg->payload, shift, false);
     return 1;
 }
 
-int verify_message(SecureMessage *msg, const unsigned char *key) {
+int verify_message(SecureMessage *msg, const uint8_t *key) {
     (void)msg;
     (void)key;
-    return 1; // Placeholder
+    return 1; // Placeholder, no verification needed with Caesar cipher
 }
 
-void generate_random_key(unsigned char *key, int size) {
+void generate_random_key(uint8_t *key, int size) {
     if (!key || size <= 0) return;
-    RAND_bytes(key, size);
+    // Simple pseudo-random key generation using time and a loop
+    srand((unsigned int)time(NULL));
+    for (int i = 0; i < size; i++) {
+        key[i] = (uint8_t)(rand() % 256);
+    }
 }
 
 void caesar_cipher(char *text, int shift, bool encrypt) {

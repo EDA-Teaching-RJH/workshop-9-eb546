@@ -1,6 +1,6 @@
 #include "common.h"
 
-static unsigned char submarine_key[KEY_SIZE];
+static uint8_t submarine_key[KEY_SIZE];
 static bool launch_capability = true;
 static bool stealth_mode = false;
 
@@ -17,7 +17,7 @@ void launch_missile(const char *target_info) {
     stealth_mode = true;
 }
 
-void gather_intel(int sock, unsigned char *key) {
+void gather_intel(int sock, uint8_t *key) {
     const char *intel_reports[] = {
         "No hostile contacts detected",
         "Commercial shipping traffic normal",
@@ -35,7 +35,6 @@ void gather_intel(int sock, unsigned char *key) {
 }
 
 int main(void) {
-    init_crypto();
     memcpy(submarine_key, "SECRET_KEY_SUBMARINE_1234567890", KEY_SIZE);
 
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -94,6 +93,6 @@ int main(void) {
     }
 
     close(sock);
-    cleanup_crypto();
     return 0;
 }
+

@@ -1,6 +1,6 @@
 #include "common.h"
 
-static unsigned char control_key[KEY_SIZE];
+static uint8_t control_key[KEY_SIZE];
 static Target targets[MAX_TARGETS];
 static int target_count = 0;
 static bool test_mode = false;
@@ -95,7 +95,6 @@ int main(int argc, char *argv[]) {
     test_mode = (argc > 1 && strcmp(argv[1], "--test") == 0);
     if (test_mode) log_message("TEST MODE ACTIVATED - Simulated war scenario", true);
 
-    init_crypto();
     generate_random_key(control_key, KEY_SIZE);
     load_targets();
 
@@ -144,8 +143,6 @@ int main(int argc, char *argv[]) {
     }
 
     close(server_fd);
-    cleanup_crypto();
     save_targets();
     return 0;
 }
-

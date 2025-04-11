@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -O2 -I.
-LDFLAGS = -lssl -lcrypto -lpthread
+LDFLAGS = -lpthread
 
 all: nuclearControl missileSilo submarine radar satellite
 
