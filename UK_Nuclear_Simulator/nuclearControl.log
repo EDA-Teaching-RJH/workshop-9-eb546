@@ -1,0 +1,31 @@
+[Sat Apr 12 16:42:23 2025] Server started
+[Sat Apr 12 16:42:26 2025] Test mode: Simulating THREAT ---> AIR ---> ENEMY_AIRCRAFT: Coordinate: 51.5074,-0.1278
+
+[Sat Apr 12 16:43:02 2025] silo
+[Sat Apr 12 16:43:13 2025] submarine
+[Sat Apr 12 16:43:13 2025] Received: THREAT ---> SEA ---> ENEMY_SUB ---> Coordinates: 48.8566,2.3522
+[Sat Apr 12 16:43:19 2025] radar
+[Sat Apr 12 16:43:27 2025] sateliteTHREAT ---> SPACE ---> ENEMY_SATELLITE ---> Coordinate: 55.7558,37.6173
+[Sat Apr 12 16:43:42 2025] Received: THREAT ---> SPACE ---> ENEMY_SATELLITE ---> Coordinate: 55.7558,37.6173
+[Sat Apr 12 16:44:19 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:44:29 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:44:39 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:44:49 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:44:59 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:45:02 2025] Sent encrypted launch command to silo
+[Sat Apr 12 16:45:09 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:45:28 2025] Sent encrypted launch command to silo
+[Sat Apr 12 16:45:29 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:45:59 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:46:09 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:46:42 2025] Received: THREAT ---> SPACE ---> ENEMY_SATELLITE ---> Coordinate: 55.7558,37.6173
+[Sat Apr 12 16:46:47 2025] Sent encrypted launch command to submarine
+[Sat Apr 12 16:47:19 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:47:32 2025] Sent encrypted launch command to silo
+[Sat Apr 12 16:47:39 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:48:57 2025] Received: THREAT ---> SPACE ---> ENEMY_SATELLITE ---> Coordinate: 55.7558,37.6173
+[Sat Apr 12 16:49:12 2025] Received: THREAT ---> SPACE ---> ENEMY_SATELLITE ---> Coordinate: 55.7558,37.6173
+[Sat Apr 12 16:49:19 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:49:27 2025] Received: THREAT ---> SPACE ---> ENEMY_SATELLITE ---> Coordinate: 55.7558,37.6173
+[Sat Apr 12 16:49:49 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
+[Sat Apr 12 16:50:09 2025] Received: THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278
