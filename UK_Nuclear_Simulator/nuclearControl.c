@@ -68,18 +68,18 @@ void clear_all_logs() {
     const char *log_files[] = LOG_FILES;
     int success = 1;
     printf("\n┌──────────────────────────────┐\n");
-    printf("│ Clearing All System Logs     │\n");
-    printf("└──────────────────────────────┘\n");
+    printf("│  Clearing All System Logs      │\n");
+    printf("└────────────────────────────────┘\n");
 
     for (int i = 0; i < NUM_LOG_FILES; i++) {
         FILE *fp = fopen(log_files[i], "w");
         if (!fp) {
-            printf("│ ERROR: Failed to clear %s\n", log_files[i]);
+            printf("│ ERROR: Failed to clear! %s\n", log_files[i]);
             success = 0;
             continue;
         }
         fclose(fp);
-        printf("│ SUCCESS: Cleared %s\n", log_files[i]);
+        printf("│ SUCCESS: CLEARED %s\n", log_files[i]);
     }
 
     if (success) {
@@ -87,7 +87,7 @@ void clear_all_logs() {
         // Reopen nuclearControl.log for logging
         log_fp = fopen(LOG_FILE, "a");
         if (!log_fp) {
-            printf("\nCRITICAL ERROR: Failed to reopen %s\n\n", LOG_FILE);
+            printf("\nCRITICAL ERROR: Failed to reopen! %s\n\n", LOG_FILE);
             exit(1);
         }
         log_message("All system logs cleared");
@@ -97,7 +97,7 @@ void clear_all_logs() {
         if (!log_fp) {
             log_fp = fopen(LOG_FILE, "a");
             if (!log_fp) {
-                printf("\nCRITICAL ERROR: Failed to reopen %s\n\n", LOG_FILE);
+                printf("\nCRITICAL ERROR: Failed to reopen! %s\n\n", LOG_FILE);
                 exit(1);
             }
         }
@@ -149,13 +149,13 @@ void *handle_client(void *arg) {
 void *menu_system(void *arg) {
     char input[10];
     while (1) {
-        printf("\n┌───────────────────────────────────────────┐\n");
-        printf("│     Nuclear Command and Control System    │\n");
+        printf("\n┌──────────────────────────────────────────┐\n");
+        printf("│     NUCLEAR COMMAND and CONTROL SYSTEM    │\n");
         printf("├───────────────────────────────────────────┤\n");
         printf("│ 1. Review and Decrypt System Logs         │\n");
         printf("│ 2. Authorize Launch Based on Threat       │\n");
         printf("│ 3. Purge All System Logs                  │\n");
-        printf("│ 4. Terminate Command Interface            │\n");
+        printf("│ 4. Terminate Command Menu Interface       │\n");
         printf("└───────────────────────────────────────────┘\n");
         printf("Enter Selection: ");
         if (!fgets(input, sizeof(input), stdin)) continue;
@@ -167,13 +167,13 @@ void *menu_system(void *arg) {
                 FILE *temp_fp = fopen(LOG_FILE, "r");
                 if (!temp_fp) {
                     printf("┌──────────────────────────────┐\n");
-                    printf("│ ERROR: Unable to access %s\n", LOG_FILE);
+                    printf("│ ERROR: UNABLE TO ACCESS %s\n", LOG_FILE);
                     printf("└──────────────────────────────┘\n\n");
                     break;
                 }
-                printf("┌──────────────────────────────┐\n");
-                printf("│       System Log Entries     │\n");
-                printf("├──────────────────────────────┤\n");
+                printf("┌─────────────────────────────────────────────────────┐\n");
+                printf("│       SYSTEM LOG ENTRIES                            │\n");
+                printf("├─────────────────────────────────────────────────────┤\n");
                 char line[BUFFER_SIZE];
                 while (fgets(line, BUFFER_SIZE, temp_fp)) {
                     if (strstr(line, "Sent encrypted launch command")) {
@@ -182,14 +182,14 @@ void *menu_system(void *arg) {
                         printf("│ %s", line);
                     }
                 }
-                printf("└──────────────────────────────┘\n\n");
+                printf("└─────────────────────────────────────────────────────┘\n\n");
                 fclose(temp_fp);
                 break;
             }
             case 2: {
                 if (strlen(last_threat) == 0) {
                     printf("┌──────────────────────────────┐\n");
-                    printf("│ STATUS: No threats detected  │\n");
+                    printf("│ STATUS: NO THREATS DETECTED  │\n");
                     printf("└──────────────────────────────┘\n\n");
                     break;
                 }
@@ -199,7 +199,7 @@ void *menu_system(void *arg) {
                 printf("│ %s\n", last_threat);
                 printf("└──────────────────────────────┘\n");
                 printf("\n┌──────────────────────────────┐\n");
-                printf("│ Select Strategic Asset       │\n");
+                printf("│  SELECT STRATEGIC ASSET      │\n");
                 printf("├──────────────────────────────┤\n");
                 printf("│ 1. Missile Silo              │\n");
                 printf("│ 2. Submarine                 │\n");
@@ -211,20 +211,20 @@ void *menu_system(void *arg) {
                 int asset = atoi(input);
                 if (asset == 3) {
                     printf("┌──────────────────────────────┐\n");
-                    printf("│ OPERATION: Launch aborted    │\n");
+                    printf("│ OPERATION: LAUNCH ABORTED    │\n");
                     printf("└──────────────────────────────┘\n\n");
                     break;
                 }
 
                 char launch_cmd[BUFFER_SIZE];
                 if (asset == 1 && strstr(last_threat, "AIR")) {
-                    snprintf(launch_cmd, BUFFER_SIZE, "LAUNCH:TARGET_AIR");
-                } else if (asset == 2 && (strstr(last_threat, "SEA") || strstr(last_threat, "SPACE"))) {
-                    snprintf(launch_cmd, BUFFER_SIZE, "LAUNCH ---> TARGET_SEA_SPACE");
+                    snprintf(launch_cmd, BUFFER_SIZE, "LAUNCH ---> TARGET_ENEMY_AIRCRAFT");
+                } else if (asset == 2 && (strstr(last_threat, "SEA"))) {
+                    snprintf(launch_cmd, BUFFER_SIZE, "LAUNCH ---> TARGET_ENEMY_SUBMARINE");
                 } else {
-                    printf("┌──────────────────────────────┐\n");
-                    printf("│ ERROR: Asset mismatch for threat\n");
-                    printf("└──────────────────────────────┘\n\n");
+                    printf("┌─────────────────────────────────┐\n");
+                    printf("│ ERROR: ASSET MISMATCH FOR THREAT\n");
+                    printf("└─────────────────────────────────┘\n\n");
                     break;
                 }
 
@@ -253,12 +253,12 @@ void *menu_system(void *arg) {
                 break;
             case 4:
                 printf("┌──────────────────────────────┐\n");
-                printf("│ SYSTEM: Interface terminated │\n");
+                printf("│ SYSTEM: INTERFACE TERMINATED │\n");
                 printf("└──────────────────────────────┘\n\n");
                 return NULL;
             default:
                 printf("┌──────────────────────────────┐\n");
-                printf("│ ERROR: Invalid selection     │\n");
+                printf("│ ERROR: INVALID SELECTION     │\n");
                 printf("└──────────────────────────────┘\n\n");
         }
     }
@@ -270,16 +270,16 @@ int main(int argc, char *argv[]) {
     if (argc > 1 && strcmp(argv[1], "--test") == 0) {
         test_mode = 1;
         printf("\n┌──────────────────────────────┐\n");
-        printf("│ SYSTEM: Initiated in test mode\n");
-        printf("└──────────────────────────────┘\n\n");
+        printf("│  SYSTEM: INITIATED IN TEST MODE\n");
+        printf("└────────────────────────────────┘\n\n");
     }
 
     // Initialize logging
     log_fp = fopen(LOG_FILE, "a");
     if (!log_fp) {
-        printf("\n┌──────────────────────────────┐\n");
-        printf("│ CRITICAL ERROR: Failed to initialize logging\n");
-        printf("└──────────────────────────────┘\n\n");
+        printf("\n┌───────────────────────────────────────────┐\n");
+        printf("│  CRITICAL ERROR: FAILED TO INITIALISE LOGGIN\n");
+        printf("└─────────────────────────────────────────────┘\n\n");
         exit(1);
     }
     chmod(LOG_FILE, 0600);
@@ -290,9 +290,9 @@ int main(int argc, char *argv[]) {
     // Setup server socket
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
-        printf("\n┌──────────────────────────────┐\n");
-        printf("│ CRITICAL ERROR: Socket creation failed\n");
-        printf("└──────────────────────────────┘\n\n");
+        printf("\n┌──────────────────────────────────────┐\n");
+        printf("│  CRITICAL ERROR: SOCKET CREATION FAILED\n");
+        printf("└────────────────────────────────────────┘\n\n");
         exit(1);
     }
 
@@ -302,32 +302,32 @@ int main(int argc, char *argv[]) {
     server_addr.sin_port = htons(PORT);
 
     if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        printf("\n┌──────────────────────────────┐\n");
-        printf("│ CRITICAL ERROR: Socket binding failed\n");
-        printf("└──────────────────────────────┘\n\n");
+        printf("\n┌─────────────────────────────────────┐\n");
+        printf("│  CRITICAL ERROR: SOCKET BINDING FAILED\n");
+        printf("└───────────────────────────────────────┘\n\n");
         close(server_fd);
         exit(1);
     }
 
     if (listen(server_fd, 10) < 0) {
-        printf("\n┌──────────────────────────────┐\n");
-        printf("│ CRITICAL ERROR: Socket listening failed\n");
-        printf("└──────────────────────────────┘\n\n");
+        printf("\n┌───────────────────────────────────────┐\n");
+        printf("│  CRITICAL ERROR: SOCKET LISTENING FAILED\n");
+        printf("└─────────────────────────────────────────┘\n\n");
         close(server_fd);
         exit(1);
     }
 
     log_message("Command system operational");
-    printf("\n┌──────────────────────────────┐\n");
-    printf("│ SYSTEM: Command system online at port %d\n", PORT);
-    printf("└──────────────────────────────┘\n\n");
+    printf("\n┌─────────────────────────────────────┐\n");
+    printf("│  SYSTEM: COMMAND SYSTEM ONLINE at PORT %d\n", PORT);
+    printf("└───────────────────────────────────────┘\n\n");
 
     // Start menu system
     pthread_t menu_thread;
     if (pthread_create(&menu_thread, NULL, menu_system, NULL) != 0) {
-        printf("\n┌──────────────────────────────┐\n");
-        printf("│ CRITICAL ERROR: Interface thread failed\n");
-        printf("└──────────────────────────────┘\n\n");
+        printf("\n┌───────────────────────────────────────┐\n");
+        printf("│  CRITICAL ERROR: INTERFACE THREAT FAILED\n");
+        printf("└─────────────────────────────────────────┘\n\n");
         close(server_fd);
         exit(1);
     }
@@ -339,18 +339,18 @@ int main(int argc, char *argv[]) {
         char threat[BUFFER_SIZE];
         int type = rand() % 2;
         if (type == 0) {
-            snprintf(threat, BUFFER_SIZE, "THREAT ---> AIR ---> ENEMY_AIRCRAFT: Coordinate: 51.5074,-0.1278");
+            snprintf(threat, BUFFER_SIZE, "AIR ---> ENEMY_AIRCRAFT: Coordinates: 51.5074,-0.1278");
         } else {
-            snprintf(threat, BUFFER_SIZE, "THREAT ---> SEA ---> ENEMY_SUB: Coordinate: 48.8566,2.3522");
+            snprintf(threat, BUFFER_SIZE, "SEA ---> ENEMY_SUBMARINE: Coordinates: 48.8566,2.3522");
         }
         char log_msg[BUFFER_SIZE];
-        snprintf(log_msg, BUFFER_SIZE, "Test mode: Simulating %s", threat);
+        snprintf(log_msg, BUFFER_SIZE, "Test Mode: SIMULATING %s", threat);
         log_message(log_msg);
         printf("\n┌──────────────────────────────┐\n");
-        printf("│ TEST MODE: Simulated threat  │\n");
-        printf("├──────────────────────────────┤\n");
+        printf("│  TEST MODE: SIMULATED THREAT   │\n");
+        printf("├────────────────────────────────┤\n");
         printf("│ %s\n", threat);
-        printf("└──────────────────────────────┘\n\n");
+        printf("└────────────────────────────────┘\n\n");
 
         strncpy(last_threat, threat, BUFFER_SIZE - 1);
     }
@@ -362,9 +362,9 @@ int main(int argc, char *argv[]) {
         int *client_fd = malloc(sizeof(int));
         *client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &addr_len);
         if (*client_fd < 0) {
-            printf("\n┌──────────────────────────────┐\n");
-            printf("│ ERROR: Client connection failed\n");
-            printf("└──────────────────────────────┘\n\n");
+            printf("\n┌───────────────────────────────┐\n");
+            printf("│  ERROR: Client connection failed\n");
+            printf("└─────────────────────────────────┘\n\n");
             free(client_fd);
             continue;
         }
@@ -374,10 +374,10 @@ int main(int argc, char *argv[]) {
         read(*client_fd, buffer, BUFFER_SIZE - 1);
         log_message(buffer);
         printf("\n┌──────────────────────────────┐\n");
-        printf("│ SYSTEM: New asset connected  │\n");
-        printf("├──────────────────────────────┤\n");
-        printf("│ Type: %s\n", buffer);
-        printf("└──────────────────────────────┘\n\n");
+        printf("│  SYSTEM: NEW ASSET CONNECTED   │\n");
+        printf("├────────────────────────────────┤\n");
+        printf("│  Type: %s\n", buffer);
+        printf("└────────────────────────────────┘\n\n");
 
         pthread_mutex_lock(&mutex);
         if (client_count < MAX_CLIENTS) {
@@ -386,9 +386,9 @@ int main(int argc, char *argv[]) {
             client_count++;
         } else {
             log_message("Maximum assets reached");
-            printf("\n┌──────────────────────────────┐\n");
-            printf("│ WARNING: Maximum assets reached\n");
-            printf("└──────────────────────────────┘\n\n");
+            printf("\n┌───────────────────────────────┐\n");
+            printf("│  WARNING: MAXIMUM ASSETS REACHED\n");
+            printf("└─────────────────────────────────┘\n\n");
             close(*client_fd);
             free(client_fd);
             pthread_mutex_unlock(&mutex);
@@ -399,9 +399,9 @@ int main(int argc, char *argv[]) {
         // Start client thread
         pthread_t thread;
         if (pthread_create(&thread, NULL, handle_client, client_fd) != 0) {
-            printf("\n┌──────────────────────────────┐\n");
-            printf("│ ERROR: Asset thread creation failed\n");
-            printf("└──────────────────────────────┘\n\n");
+            printf("\n┌───────────────────────────────────┐\n");
+            printf("│  ERROR: ASSET THREAD CREATION FAILED\n");
+            printf("└─────────────────────────────────────┘\n\n");
             close(*client_fd);
             free(client_fd);
         }

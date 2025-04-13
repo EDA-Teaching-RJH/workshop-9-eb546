@@ -23,9 +23,9 @@ int main() {
     // Initialize logging
     FILE *log_fp = fopen(LOG_FILE, "a");
     if (!log_fp) {
-        printf("\n┌──────────────────────────────┐\n");
-        printf("│ CRITICAL ERROR: Failed to initialize logging\n");
-        printf("└──────────────────────────────┘\n\n");
+        printf("\n┌────────────────────────────────────────────┐\n");
+        printf("│  CRITICAL ERROR: FAILED TO INITIALIZE LOGGING\n");
+        printf("└──────────────────────────────────────────────┘\n");
         exit(1);
     }
     chmod(LOG_FILE, 0600);
@@ -33,9 +33,9 @@ int main() {
     // Setup socket
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
-        printf("\n┌──────────────────────────────┐\n");
-        printf("│ CRITICAL ERROR: Socket creation failed\n");
-        printf("└──────────────────────────────┘\n\n");
+        printf("\n┌──────────────────────────────────────┐\n");
+        printf("│  CRITICAL ERROR: SOCKET CREATION FAILED\n");
+        printf("└────────────────────────────────────────┘\n");
         exit(1);
     }
 
@@ -45,9 +45,9 @@ int main() {
     inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr);
 
     if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        printf("\n┌──────────────────────────────┐\n");
-        printf("│ CRITICAL ERROR: Connection to command system failed\n");
-        printf("└──────────────────────────────┘\n\n");
+        printf("\n┌───────────────────────────────────────────────────┐\n");
+        printf("│  CRITICAL ERROR: CONNECTION TO COMMAND SYSTEM FAILED\n");
+        printf("└─────────────────────────────────────────────────────┘\n");
         close(sockfd);
         exit(1);
     }
@@ -57,21 +57,21 @@ int main() {
     write(sockfd, type, strlen(type));
     log_message(log_fp, "Connected to command system");
     printf("\n┌──────────────────────────────┐\n");
-    printf("│ SYSTEM: Radar online         │\n");
-    printf("└──────────────────────────────┘\n\n");
+    printf("│  SYSTEM: RADAR ONLINE          │\n");
+    printf("└────────────────────────────────┘\n");
 
     // Simulate sending intelligence
     srand(time(NULL));
     while (1) {
         if (rand() % 10 < 3) {
-            char intel[] = "THREAT ---> AIR ---> ENEMY_AIRCRAFT ---> Coordinate: 51.5074,-0.1278";
+            char intel[] = "AIR ---> ENEMY_AIRCRAFT ---> CoordinateS: 51.5074,-0.1278";
             write(sockfd, intel, strlen(intel));
-            log_message(log_fp, "Transmitted intelligence: Air-based threat");
+            log_message(log_fp, "Transmitted Intelligence: Air-Based Threat");
             printf("\n┌──────────────────────────────┐\n");
-            printf("│ INTEL TRANSMITTED: Air threat\n");
-            printf("├──────────────────────────────┤\n");
+            printf("│  INTEL TRANSMITTED: AIR THREAT\n");
+            printf("├────────────────────────────────┤\n");
             printf("│ %s\n", intel);
-            printf("└──────────────────────────────┘\n\n");
+            printf("└────────────────────────────────┘\n");
         }
         sleep(10);
     }
