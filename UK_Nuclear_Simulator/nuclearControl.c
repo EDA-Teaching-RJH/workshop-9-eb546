@@ -14,6 +14,8 @@
 #define BUFFER_SIZE 1024
 #define KEY "0123456789abcdef0123456789abcdef" // 32-byte AES-256 key
 #define LOG_FILE "nuclearControl.log"
+#define LOG_FILES {"nuclearControl.log", "missileSilo.log", "submarine.log", "radar.log", "satellite.log"}
+#define NUM_LOG_FILES 5
 
 // Structure for client info
 typedef struct {
@@ -61,17 +63,46 @@ void log_message(const char *msg) {
     fflush(log_fp);
 }
 
-// Clear log file
-void clear_logs() {
-    fclose(log_fp);
-    log_fp = fopen(LOG_FILE, "w");
-    if (!log_fp) {
-        printf("\nERROR: Failed to clear log file\n\n");
-        log_fp = fopen(LOG_FILE, "a"); // Reopen in append mode to continue logging
-        return;
+// Clear all log files
+void clear_all_logs() {
+    const char *log_files[] = LOG_FILES;
+    int success = 1;
+    printf("\n┌──────────────────────────────┐\n");
+    printf("│ Clearing All System Logs     │\n");
+    printf("└──────────────────────────────┘\n");
+
+    for (int i = 0; i < NUM_LOG_FILES; i++) {
+        FILE *fp = fopen(log_files[i], "w");
+        if (!fp) {
+            printf("│ ERROR: Failed to clear %s\n", log_files[i]);
+            success = 0;
+            continue;
+        }
+        fclose(fp);
+        printf("│ SUCCESS: Cleared %s\n", log_files[i]);
     }
-    printf("\nSUCCESS: Log file cleared\n\n");
-    log_message("Log file cleared");
+
+    if (success) {
+        printf("└── All logs cleared successfully\n\n");
+        // Reopen nuclearControl.log for logging
+        log_fp = fopen(LOG_FILE, "a");
+        if (!log_fp) {
+            printf("\nCRITICAL ERROR: Failed to reopen %s\n\n", LOG_FILE);
+            exit(1);
+        }
+        log_message("All system logs cleared");
+    } else {
+        printf("└── Partial failure in clearing logs\n\n");
+        // Reopen nuclearControl.log if not already open
+        if (!log_fp) {
+            log_fp = fopen(LOG_FILE, "a");
+            if (!log_fp) {
+                printf("\nCRITICAL ERROR: Failed to reopen %s\n\n", LOG_FILE);
+                exit(1);
+            }
+        }
+        log_message("Partial failure in clearing all system logs");
+    }
 }
 
 // Handle client communication
@@ -118,55 +149,70 @@ void *handle_client(void *arg) {
 void *menu_system(void *arg) {
     char input[10];
     while (1) {
-        printf("\n=== Nuclear Control System ===\n");
-        printf("1. View and Decrypt Log Messages\n");
-        printf("2. Decide Launch Based on Last Threat\n");
-        printf("3. Clear Log File\n");
-        printf("4. Exit\n");
-        printf("------------------------------\n");
-        printf("Enter choice: ");
+        printf("\n┌───────────────────────────────────────────┐\n");
+        printf("│     Nuclear Command and Control System    │\n");
+        printf("├───────────────────────────────────────────┤\n");
+        printf("│ 1. Review and Decrypt System Logs         │\n");
+        printf("│ 2. Authorize Launch Based on Threat       │\n");
+        printf("│ 3. Purge All System Logs                  │\n");
+        printf("│ 4. Terminate Command Interface            │\n");
+        printf("└───────────────────────────────────────────┘\n");
+        printf("Enter Selection: ");
         if (!fgets(input, sizeof(input), stdin)) continue;
 
         int choice = atoi(input);
         printf("\n");
         switch (choice) {
             case 1: {
-                // Read and decrypt log file
                 FILE *temp_fp = fopen(LOG_FILE, "r");
                 if (!temp_fp) {
-                    printf("ERROR: Failed to open log file\n\n");
+                    printf("┌──────────────────────────────┐\n");
+                    printf("│ ERROR: Unable to access %s\n", LOG_FILE);
+                    printf("└──────────────────────────────┘\n\n");
                     break;
                 }
-                printf("=== Log Messages ===\n");
+                printf("┌──────────────────────────────┐\n");
+                printf("│       System Log Entries     │\n");
+                printf("├──────────────────────────────┤\n");
                 char line[BUFFER_SIZE];
                 while (fgets(line, BUFFER_SIZE, temp_fp)) {
                     if (strstr(line, "Sent encrypted launch command")) {
-                        printf("Decrypted: %s", line);
+                        printf("│ [DECRYPTED] %s", line);
                     } else {
-                        printf("%s", line);
+                        printf("│ %s", line);
                     }
                 }
-                printf("===================\n\n");
+                printf("└──────────────────────────────┘\n\n");
                 fclose(temp_fp);
                 break;
             }
             case 2: {
                 if (strlen(last_threat) == 0) {
-                    printf("INFO: No threat detected yet\n\n");
+                    printf("┌──────────────────────────────┐\n");
+                    printf("│ STATUS: No threats detected  │\n");
+                    printf("└──────────────────────────────┘\n\n");
                     break;
                 }
-                printf("Last Threat Detected: %s\n", last_threat);
-                printf("\nSelect Launch Asset:\n");
-                printf("1. Missile Silo\n");
-                printf("2. Submarine\n");
-                printf("3. Cancel\n");
-                printf("-------------------\n");
-                printf("Enter choice: ");
+                printf("┌──────────────────────────────┐\n");
+                printf("│ Latest Threat Intelligence   │\n");
+                printf("├──────────────────────────────┤\n");
+                printf("│ %s\n", last_threat);
+                printf("└──────────────────────────────┘\n");
+                printf("\n┌──────────────────────────────┐\n");
+                printf("│ Select Strategic Asset       │\n");
+                printf("├──────────────────────────────┤\n");
+                printf("│ 1. Missile Silo              │\n");
+                printf("│ 2. Submarine                 │\n");
+                printf("│ 3. Cancel Operation          │\n");
+                printf("└──────────────────────────────┘\n");
+                printf("Enter Selection: ");
                 if (!fgets(input, sizeof(input), stdin)) continue;
 
                 int asset = atoi(input);
                 if (asset == 3) {
-                    printf("INFO: Launch cancelled\n\n");
+                    printf("┌──────────────────────────────┐\n");
+                    printf("│ OPERATION: Launch aborted    │\n");
+                    printf("└──────────────────────────────┘\n\n");
                     break;
                 }
 
@@ -176,7 +222,9 @@ void *menu_system(void *arg) {
                 } else if (asset == 2 && (strstr(last_threat, "SEA") || strstr(last_threat, "SPACE"))) {
                     snprintf(launch_cmd, BUFFER_SIZE, "LAUNCH ---> TARGET_SEA_SPACE");
                 } else {
-                    printf("ERROR: Invalid asset for this threat\n\n");
+                    printf("┌──────────────────────────────┐\n");
+                    printf("│ ERROR: Asset mismatch for threat\n");
+                    printf("└──────────────────────────────┘\n\n");
                     break;
                 }
 
@@ -192,20 +240,26 @@ void *menu_system(void *arg) {
                         char log_msg[BUFFER_SIZE];
                         snprintf(log_msg, BUFFER_SIZE, "Sent encrypted launch command to %s", clients[i].type);
                         log_message(log_msg);
-                        printf("SUCCESS: Launch command sent to %s\n\n", clients[i].type);
+                        printf("┌──────────────────────────────┐\n");
+                        printf("│ SUCCESS: Command issued to %s\n", clients[i].type);
+                        printf("└──────────────────────────────┘\n\n");
                     }
                 }
                 pthread_mutex_unlock(&mutex);
                 break;
             }
             case 3:
-                clear_logs();
+                clear_all_logs();
                 break;
             case 4:
-                printf("INFO: Exiting menu system\n\n");
+                printf("┌──────────────────────────────┐\n");
+                printf("│ SYSTEM: Interface terminated │\n");
+                printf("└──────────────────────────────┘\n\n");
                 return NULL;
             default:
-                printf("ERROR: Invalid choice\n\n");
+                printf("┌──────────────────────────────┐\n");
+                printf("│ ERROR: Invalid selection     │\n");
+                printf("└──────────────────────────────┘\n\n");
         }
     }
     return NULL;
@@ -215,13 +269,17 @@ int main(int argc, char *argv[]) {
     int test_mode = 0;
     if (argc > 1 && strcmp(argv[1], "--test") == 0) {
         test_mode = 1;
-        printf("\nINFO: Running in test mode\n\n");
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ SYSTEM: Initiated in test mode\n");
+        printf("└──────────────────────────────┘\n\n");
     }
 
     // Initialize logging
     log_fp = fopen(LOG_FILE, "a");
     if (!log_fp) {
-        perror("\nERROR: Failed to open log file\n");
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ CRITICAL ERROR: Failed to initialize logging\n");
+        printf("└──────────────────────────────┘\n\n");
         exit(1);
     }
     chmod(LOG_FILE, 0600);
@@ -232,7 +290,9 @@ int main(int argc, char *argv[]) {
     // Setup server socket
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
-        perror("\nERROR: Socket creation failed\n");
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ CRITICAL ERROR: Socket creation failed\n");
+        printf("└──────────────────────────────┘\n\n");
         exit(1);
     }
 
@@ -242,24 +302,32 @@ int main(int argc, char *argv[]) {
     server_addr.sin_port = htons(PORT);
 
     if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("\nERROR: Bind failed\n");
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ CRITICAL ERROR: Socket binding failed\n");
+        printf("└──────────────────────────────┘\n\n");
         close(server_fd);
         exit(1);
     }
 
     if (listen(server_fd, 10) < 0) {
-        perror("\nERROR: Listen failed\n");
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ CRITICAL ERROR: Socket listening failed\n");
+        printf("└──────────────────────────────┘\n\n");
         close(server_fd);
         exit(1);
     }
 
-    log_message("Server started");
-    printf("\nINFO: Server started on port %d\n\n", PORT);
+    log_message("Command system operational");
+    printf("\n┌──────────────────────────────┐\n");
+    printf("│ SYSTEM: Command system online at port %d\n", PORT);
+    printf("└──────────────────────────────┘\n\n");
 
     // Start menu system
     pthread_t menu_thread;
     if (pthread_create(&menu_thread, NULL, menu_system, NULL) != 0) {
-        perror("\nERROR: Menu thread creation failed\n");
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ CRITICAL ERROR: Interface thread failed\n");
+        printf("└──────────────────────────────┘\n\n");
         close(server_fd);
         exit(1);
     }
@@ -278,7 +346,11 @@ int main(int argc, char *argv[]) {
         char log_msg[BUFFER_SIZE];
         snprintf(log_msg, BUFFER_SIZE, "Test mode: Simulating %s", threat);
         log_message(log_msg);
-        printf("\nINFO: Test mode - Simulated threat: %s\n\n", threat);
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ TEST MODE: Simulated threat  │\n");
+        printf("├──────────────────────────────┤\n");
+        printf("│ %s\n", threat);
+        printf("└──────────────────────────────┘\n\n");
 
         strncpy(last_threat, threat, BUFFER_SIZE - 1);
     }
@@ -290,7 +362,9 @@ int main(int argc, char *argv[]) {
         int *client_fd = malloc(sizeof(int));
         *client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &addr_len);
         if (*client_fd < 0) {
-            perror("\nERROR: Accept failed\n");
+            printf("\n┌──────────────────────────────┐\n");
+            printf("│ ERROR: Client connection failed\n");
+            printf("└──────────────────────────────┘\n\n");
             free(client_fd);
             continue;
         }
@@ -299,7 +373,11 @@ int main(int argc, char *argv[]) {
         char buffer[BUFFER_SIZE] = {0};
         read(*client_fd, buffer, BUFFER_SIZE - 1);
         log_message(buffer);
-        printf("\nINFO: New client connected - Type: %s\n\n", buffer);
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ SYSTEM: New asset connected  │\n");
+        printf("├──────────────────────────────┤\n");
+        printf("│ Type: %s\n", buffer);
+        printf("└──────────────────────────────┘\n\n");
 
         pthread_mutex_lock(&mutex);
         if (client_count < MAX_CLIENTS) {
@@ -307,8 +385,10 @@ int main(int argc, char *argv[]) {
             clients[client_count].type = strdup(buffer);
             client_count++;
         } else {
-            log_message("Max clients reached");
-            printf("\nWARNING: Max clients reached, rejecting connection\n\n");
+            log_message("Maximum assets reached");
+            printf("\n┌──────────────────────────────┐\n");
+            printf("│ WARNING: Maximum assets reached\n");
+            printf("└──────────────────────────────┘\n\n");
             close(*client_fd);
             free(client_fd);
             pthread_mutex_unlock(&mutex);
@@ -319,7 +399,9 @@ int main(int argc, char *argv[]) {
         // Start client thread
         pthread_t thread;
         if (pthread_create(&thread, NULL, handle_client, client_fd) != 0) {
-            perror("\nERROR: Thread creation failed\n");
+            printf("\n┌──────────────────────────────┐\n");
+            printf("│ ERROR: Asset thread creation failed\n");
+            printf("└──────────────────────────────┘\n\n");
             close(*client_fd);
             free(client_fd);
         }
@@ -331,3 +413,4 @@ int main(int argc, char *argv[]) {
     close(server_fd);
     return 0;
 }
+

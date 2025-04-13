@@ -34,7 +34,9 @@ int main() {
     // Initialize logging
     FILE *log_fp = fopen(LOG_FILE, "a");
     if (!log_fp) {
-        perror("\nERROR: Failed to open log file\n");
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ CRITICAL ERROR: Failed to initialize logging\n");
+        printf("└──────────────────────────────┘\n\n");
         exit(1);
     }
     chmod(LOG_FILE, 0600);
@@ -42,7 +44,9 @@ int main() {
     // Setup client socket
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
-        perror("\nERROR: Socket creation failed\n");
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ CRITICAL ERROR: Socket creation failed\n");
+        printf("└──────────────────────────────┘\n\n");
         exit(1);
     }
 
@@ -52,7 +56,9 @@ int main() {
     inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr);
 
     if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("\nERROR: Connection failed\n");
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ CRITICAL ERROR: Connection to command system failed\n");
+        printf("└──────────────────────────────┘\n\n");
         close(sockfd);
         exit(1);
     }
@@ -60,8 +66,10 @@ int main() {
     // Send client type
     char *type = "silo";
     write(sockfd, type, strlen(type));
-    log_message(log_fp, "Connected to nuclearControl");
-    printf("\nINFO: Missile Silo connected to server\n\n");
+    log_message(log_fp, "Connected to command system");
+    printf("\n┌──────────────────────────────┐\n");
+    printf("│ SYSTEM: Missile Silo online  │\n");
+    printf("└──────────────────────────────┘\n\n");
 
     // Listen for commands
     char buffer[BUFFER_SIZE];
@@ -69,8 +77,10 @@ int main() {
         memset(buffer, 0, BUFFER_SIZE);
         int n = read(sockfd, buffer, BUFFER_SIZE);
         if (n <= 0) {
-            log_message(log_fp, "Disconnected from server");
-            printf("\nINFO: Disconnected from server\n\n");
+            log_message(log_fp, "Disconnected from command system");
+            printf("\n┌──────────────────────────────┐\n");
+            printf("│ SYSTEM: Disconnected from command system\n");
+            printf("└──────────────────────────────┘\n\n");
             break;
         }
 
@@ -80,21 +90,28 @@ int main() {
         char log_msg[BUFFER_SIZE];
         snprintf(log_msg, BUFFER_SIZE, "Received: %s", decrypted);
         log_message(log_fp, log_msg);
-        printf("\nINFO: Received command: %s\n", decrypted);
+        printf("\n┌──────────────────────────────┐\n");
+        printf("│ COMMAND RECEIVED: %s\n", decrypted);
+        printf("└──────────────────────────────┘\n");
 
         // Process launch command
         if (strstr(decrypted, "LAUNCH ---> TARGET_AIR")) {
-            log_message(log_fp, "Launch command verified for air target. Initiating countdown...");
-            printf("\n=== Launch Sequence Initiated ===\n");
+            log_message(log_fp, "Launch command verified for air target. Initiating sequence...");
+            printf("\n┌──────────────────────────────┐\n");
+            printf("│ STRATEGIC LAUNCH SEQUENCE    │\n");
+            printf("├──────────────────────────────┤\n");
+            printf("│ TARGET: Air-based threat     │\n");
+            printf("└──────────────────────────────┘\n");
             for (int i = 10; i >= 0; i--) {
-                snprintf(log_msg, BUFFER_SIZE, "Launch in %d seconds", i);
+                snprintf(log_msg, BUFFER_SIZE, "Launch in T-%d seconds", i);
                 log_message(log_fp, log_msg);
-                printf("T-%d seconds\n", i);
+                printf("│ T-%02d seconds to launch\n", i);
                 sleep(1);
             }
-            log_message(log_fp, "Missile launched to air target!");
-            printf("SUCCESS: Missile launched to air target\n");
-            printf("=============================\n\n");
+            log_message(log_fp, "Missile deployed to air target");
+            printf("┌──────────────────────────────┐\n");
+            printf("│ SUCCESS: Missile deployed    │\n");
+            printf("└──────────────────────────────┘\n\n");
         }
     }
 
