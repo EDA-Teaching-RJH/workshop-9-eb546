@@ -77,7 +77,7 @@ int main() {
     while (1) {
         // Randomly send intelligence
         if (rand() % 10 < 2) {
-            char intel[] = "SEA ---> ENEMY_SUB ---> Coordinates: 48.8566,2.3522";
+            char intel[] = "SEA ---> ENEMY_SUBMARINE ---> Coordinates: 48.8566,2.3522";
             write(sockfd, intel, strlen(intel));
             log_message(log_fp, "Transmitted Intelligence: Sea-Based Threat");
             printf("\n┌─────────────────────────────┐\n");
