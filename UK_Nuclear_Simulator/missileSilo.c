@@ -34,7 +34,7 @@ int main() {
     // Initialize logging
     FILE *log_fp = fopen(LOG_FILE, "a");
     if (!log_fp) {
-        printf("\n┌────────────────────────────────────────────┐\n");
+        printf("\n┌──────────────────────────────────────────────┐\n");
         printf("│  CRITICAL ERROR: FAILED TO INITIALIZE LOGGIN\n");
         printf("└──────────────────────────────────────────────┘\n\n");
         exit(1);
@@ -44,7 +44,7 @@ int main() {
     // Setup client socket
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
-        printf("\n┌──────────────────────────────────────┐\n");
+        printf("\n┌────────────────────────────────────────┐\n");
         printf("│  CRITICAL ERROR: SOCKET CREATION FAILED\n");
         printf("└────────────────────────────────────────┘\n\n");
         exit(1);
@@ -56,7 +56,7 @@ int main() {
     inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr);
 
     if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        printf("\n┌───────────────────────────────────────────────────┐\n");
+        printf("\n┌─────────────────────────────────────────────────────┐\n");
         printf("│  CRITICAL ERROR: CONNECTION TO COMMAND SYSTEM FAILED\n");
         printf("└─────────────────────────────────────────────────────┘\n\n");
         close(sockfd);
@@ -67,7 +67,7 @@ int main() {
     char *type = "silo";
     write(sockfd, type, strlen(type));
     log_message(log_fp, "Connected to command system");
-    printf("\n┌──────────────────────────────┐\n");
+    printf("\n┌────────────────────────────────┐\n");
     printf("│  SYSTEM: Missile Silo online   │\n");
     printf("└────────────────────────────────┘\n\n");
 
@@ -78,7 +78,7 @@ int main() {
         int n = read(sockfd, buffer, BUFFER_SIZE);
         if (n <= 0) {
             log_message(log_fp, "Disconnected from command system");
-            printf("\n┌────────────────────────────────────────┐\n");
+            printf("\n┌──────────────────────────────────────────┐\n");
             printf("│  SYSTEM: DISCONNECTED FROM COMMAND SYSTEM\n");
             printf("└──────────────────────────────────────────┘\n\n");
             break;
@@ -90,17 +90,17 @@ int main() {
         char log_msg[BUFFER_SIZE];
         snprintf(log_msg, BUFFER_SIZE, "Received: %s", decrypted);
         log_message(log_fp, log_msg);
-        printf("\n┌────────────────────────────┐\n");
+        printf("\n┌──────────────────────────────┐\n");
         printf("│  COMMAND RECEIVED: %s\n", decrypted);
         printf("└──────────────────────────────┘\n");
 
         // Process launch command
         if (strstr(decrypted, "LAUNCH ---> TARGET_ENEMY_AIRCRAFT")) {
             log_message(log_fp, "Launch command verified for air target. Initiating sequence...");
-            printf("\n┌─────────────────────────────┐\n");
+            printf("\n┌───────────────────────────────┐\n");
             printf("│  STRATEGIC LAUNCH SEQUENCE    │\n");
             printf("├─────────C─────────────────────┤\n");
-            printf("│  TARGET: AIR THREAT     │\n");
+            printf("│  TARGET: AIR THREAT           │\n");
             printf("└─────────────C─────────────────┘\n");
             for (int i = 10; i >= 0; i--) {
                 snprintf(log_msg, BUFFER_SIZE, "Launch in T-%d seconds", i);

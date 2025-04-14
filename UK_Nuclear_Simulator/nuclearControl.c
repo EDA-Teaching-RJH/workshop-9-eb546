@@ -67,7 +67,7 @@ void log_message(const char *msg) {
 void clear_all_logs() {
     const char *log_files[] = LOG_FILES;
     int success = 1;
-    printf("\n┌──────────────────────────────┐\n");
+    printf("\n┌────────────────────────────────┐\n");
     printf("│  Clearing All System Logs      │\n");
     printf("└────────────────────────────────┘\n");
 
@@ -149,7 +149,7 @@ void *handle_client(void *arg) {
 void *menu_system(void *arg) {
     char input[10];
     while (1) {
-        printf("\n┌──────────────────────────────────────────┐\n");
+        printf("\n┌───────────────────────────────────────────┐\n");
         printf("│     NUCLEAR COMMAND and CONTROL SYSTEM    │\n");
         printf("├───────────────────────────────────────────┤\n");
         printf("│ 1. Review and Decrypt System Logs         │\n");
@@ -269,7 +269,7 @@ int main(int argc, char *argv[]) {
     int test_mode = 0;
     if (argc > 1 && strcmp(argv[1], "--test") == 0) {
         test_mode = 1;
-        printf("\n┌──────────────────────────────┐\n");
+        printf("\n┌────────────────────────────────┐\n");
         printf("│  SYSTEM: INITIATED IN TEST MODE\n");
         printf("└────────────────────────────────┘\n\n");
     }
@@ -277,7 +277,7 @@ int main(int argc, char *argv[]) {
     // Initialize logging
     log_fp = fopen(LOG_FILE, "a");
     if (!log_fp) {
-        printf("\n┌───────────────────────────────────────────┐\n");
+        printf("\n┌─────────────────────────────────────────────┐\n");
         printf("│  CRITICAL ERROR: FAILED TO INITIALISE LOGGIN\n");
         printf("└─────────────────────────────────────────────┘\n\n");
         exit(1);
@@ -290,7 +290,7 @@ int main(int argc, char *argv[]) {
     // Setup server socket
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
-        printf("\n┌──────────────────────────────────────┐\n");
+        printf("\n┌────────────────────────────────────────┐\n");
         printf("│  CRITICAL ERROR: SOCKET CREATION FAILED\n");
         printf("└────────────────────────────────────────┘\n\n");
         exit(1);
@@ -302,7 +302,7 @@ int main(int argc, char *argv[]) {
     server_addr.sin_port = htons(PORT);
 
     if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        printf("\n┌─────────────────────────────────────┐\n");
+        printf("\n┌───────────────────────────────────────┐\n");
         printf("│  CRITICAL ERROR: SOCKET BINDING FAILED\n");
         printf("└───────────────────────────────────────┘\n\n");
         close(server_fd);
@@ -310,7 +310,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (listen(server_fd, 10) < 0) {
-        printf("\n┌───────────────────────────────────────┐\n");
+        printf("\n┌─────────────────────────────────────────┐\n");
         printf("│  CRITICAL ERROR: SOCKET LISTENING FAILED\n");
         printf("└─────────────────────────────────────────┘\n\n");
         close(server_fd);
@@ -318,14 +318,14 @@ int main(int argc, char *argv[]) {
     }
 
     log_message("Command system operational");
-    printf("\n┌─────────────────────────────────────┐\n");
+    printf("\n┌───────────────────────────────────────┐\n");
     printf("│  SYSTEM: COMMAND SYSTEM ONLINE at PORT %d\n", PORT);
     printf("└───────────────────────────────────────┘\n\n");
 
     // Start menu system
     pthread_t menu_thread;
     if (pthread_create(&menu_thread, NULL, menu_system, NULL) != 0) {
-        printf("\n┌───────────────────────────────────────┐\n");
+        printf("\n┌─────────────────────────────────────────┐\n");
         printf("│  CRITICAL ERROR: INTERFACE THREAT FAILED\n");
         printf("└─────────────────────────────────────────┘\n\n");
         close(server_fd);
@@ -346,7 +346,7 @@ int main(int argc, char *argv[]) {
         char log_msg[BUFFER_SIZE];
         snprintf(log_msg, BUFFER_SIZE, "Test Mode: SIMULATING %s", threat);
         log_message(log_msg);
-        printf("\n┌──────────────────────────────┐\n");
+        printf("\n┌────────────────────────────────┐\n");
         printf("│  TEST MODE: SIMULATED THREAT   │\n");
         printf("├────────────────────────────────┤\n");
         printf("│ %s\n", threat);
@@ -362,7 +362,7 @@ int main(int argc, char *argv[]) {
         int *client_fd = malloc(sizeof(int));
         *client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &addr_len);
         if (*client_fd < 0) {
-            printf("\n┌───────────────────────────────┐\n");
+            printf("\n┌─────────────────────────────────┐\n");
             printf("│  ERROR: Client connection failed\n");
             printf("└─────────────────────────────────┘\n\n");
             free(client_fd);
@@ -373,7 +373,7 @@ int main(int argc, char *argv[]) {
         char buffer[BUFFER_SIZE] = {0};
         read(*client_fd, buffer, BUFFER_SIZE - 1);
         log_message(buffer);
-        printf("\n┌──────────────────────────────┐\n");
+        printf("\n┌────────────────────────────────┐\n");
         printf("│  SYSTEM: NEW ASSET CONNECTED   │\n");
         printf("├────────────────────────────────┤\n");
         printf("│  Type: %s\n", buffer);
@@ -386,7 +386,7 @@ int main(int argc, char *argv[]) {
             client_count++;
         } else {
             log_message("Maximum assets reached");
-            printf("\n┌───────────────────────────────┐\n");
+            printf("\n┌─────────────────────────────────┐\n");
             printf("│  WARNING: MAXIMUM ASSETS REACHED\n");
             printf("└─────────────────────────────────┘\n\n");
             close(*client_fd);
@@ -399,7 +399,7 @@ int main(int argc, char *argv[]) {
         // Start client thread
         pthread_t thread;
         if (pthread_create(&thread, NULL, handle_client, client_fd) != 0) {
-            printf("\n┌───────────────────────────────────┐\n");
+            printf("\n┌─────────────────────────────────────┐\n");
             printf("│  ERROR: ASSET THREAD CREATION FAILED\n");
             printf("└─────────────────────────────────────┘\n\n");
             close(*client_fd);
