@@ -63,7 +63,7 @@ int main() {
     // Simulate sending intelligence
     srand(time(NULL));
     while (1) {
-        if (rand() % 10 < 3) {
+        if (rand() % 10 < 4) {
             char intel[] = "SEA ---> ENEMY_SUBMARINE ---> Coordinates: 55.7558,37.6173";
             write(sockfd, intel, strlen(intel));
             log_message(log_fp, "Transmitted Intelligence: Sea-Based Threat");
